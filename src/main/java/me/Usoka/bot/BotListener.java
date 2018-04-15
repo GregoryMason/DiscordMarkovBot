@@ -16,8 +16,13 @@ import org.apache.commons.collections4.ListUtils;
 
 import java.util.*;
 
+/**
+ * TODO split into multiple classes, this has gotten too big/complicates <p/>
+ * <code>BotListener</code> - for getting the GuileMessageEvents, then calling a
+ * handler passing in a generic event to the right methods <br/>
+ * <code>ClassName</code> - handler which takes the events
+ */
 public class BotListener extends ListenerAdapter {
-
 	/**
 	 * Character that is used for initialising commands for this bot ({@value})
 	 */
@@ -58,7 +63,6 @@ public class BotListener extends ListenerAdapter {
 	private Core markovCore;
 
 	/**
-	 * Create an instance of <code>BotListener</code>
 	 * @param homeGuildID The ID of the guild which the bot is based in
 	 * @param targetChannelID Channel which the bot uses for sending messages
 	 */
@@ -74,14 +78,12 @@ public class BotListener extends ListenerAdapter {
 
 	/**
 	 * Set the userID related to the administrative account for this bot
-	 * @param userID
+	 * @param userID ID as String for the admin user
 	 */
-	public void setAdmin(String userID) {
-		this.adminUserID = userID;
-	}
+	public void setAdmin(String userID) { this.adminUserID = userID; }
 
 	/**
-	 * Event listener for when the bot has successfully connect to the API and is ready to run
+	 * Listener for when the has successfully connect to the API and is ready to run
 	 * @param event The event which queues this
 	 */
 	@Override
@@ -89,7 +91,7 @@ public class BotListener extends ListenerAdapter {
 
 	/**
 	 * Start processes for the bot to complete before processing any messages
-	 * @param api api used to get the Guilds and Channels
+	 * @param api api instance used to get the Guilds and Channels
 	 */
 	private void startBot(JDA api) {
 		Guild homeGuild = api.getGuildById(homeGuildID);
@@ -117,17 +119,17 @@ public class BotListener extends ListenerAdapter {
 	}
 
 	/**
-	 * Takes passed arguments and interprets what commands they call
-	 * @param event MessageReceivedEvent for the message with give command
+	 * Interprets what command has been called if any, and resolved it regarding it's content
+	 * @param event <code>GuildMessageReceivedEvent</code> for the message with the command
 	 * @param command command called in that message
-	 * @param content everything else in that message
+	 * @param content everything following the command in the message
 	 */
 	private void interpretCommand(GuildMessageReceivedEvent event, String command, String content) {
 		MessageChannel channel = event.getChannel();
 
-		//TODO Set up something better for the commands
+		//TODO Set up something better for handling commands
 
-		//There is nothing current set up for the markov
+		//If the markov core is not initialised, following commands won't work
 		if (markovCore == null) return;
 
 		if (command.equals("gethistory") && event.getAuthor().getId().equals(adminUserID)) {
@@ -137,10 +139,13 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("context")) channel.sendMessage("Feature missing \uD83D\uDE22").queue();
 
 		if (command.equals("count")) {
+			//Count all unique words in the lexicon
 			if (content.equals("")) {
 				channel.sendMessage("Lexicon contains "+ markovCore.getLexiconSize() +" unique words").queue();
 				return;
 			}
+
+			//Count frequency of a specific word in the lexicon
 			int count = markovCore.getFrequencyOf(content);
 			channel.sendMessage("\""+ content +"\" said "+ count +" time"+ ((count == 1)? "":"s")).queue();
 		}
@@ -166,28 +171,40 @@ public class BotListener extends ListenerAdapter {
 
 		if (command.equals("setuser")) {
 			if (content.matches("^<@!?[0-9]*>$")) {
-				User targetUser = event.getJDA().getUserById(content.replaceFirst("^<@!?", "").replaceFirst(">$", ""));
+				//String the mention down to just the user ID, then get the user through the api
+				String targetUserID = content.replaceFirst("^<@!?", "").replaceFirst(">$", "");
+				User targetUser = event.getJDA().getUserById(targetUserID);
+
 				if (targetUser != null) try {
-					//Set up the nickname for the bot, ensuring it's not over the character limit
+					//Create the nickname for the bot, ensuring it's not over the character limit
 					String botNickname = targetUser.getName();
 					if (botNickname.length() > 28) botNickname = botNickname.substring(0,28);
 					botNickname += " Bot";
 
+					//Set the nickname, stating reason
 					event.getGuild().getController().setNickname(event.getGuild().getSelfMember(), botNickname).reason("Auto set nickname for changing source").queue();
+
+					//Set the target user FIXME won't get reached if InsufficientPermissionException is thrown
 					markovCore.setTargetUser(convertUserClass(targetUser));
-				} catch (InsufficientPermissionException ignore) {} finally {
+
+				} catch (InsufficientPermissionException ignore) {} finally { //TODO check for permissions first, rather than catching
+					//Add reaction to message to confirm targetUser has been set
 					event.getMessage().addReaction("\uD83C\uDD97").queue();
 				}
 			}
 			if (content.toLowerCase().equals("all")) {
+				//Set target user to null (aka all users)
 				markovCore.setTargetUser(null);
+				//Set nickname accordingly FIXME can throw InsufficientPermissionException
 				event.getGuild().getController().setNickname(event.getGuild().getSelfMember(), DEFAULT_NICKNAME).reason("Auto reset nickname for all users").queue();
+
+				//Add reaction to message to confirm targetUser has been set
 				event.getMessage().addReaction("\uD83C\uDD97").queue();
 			}
 		}
 
-		if (!(event.getChannel().getId().equals(botChannelID)
-				|| event.getChannel().getId().equals(botChannelID))) return;
+		//Following commands can only be interpreted in the specified bot channel
+		if (!event.getChannel().getId().equals(botChannelID)) return;
 
 		//For building Markov sentences
 		if (command.equals("quote")) sendMarkovSentence(channel, content, false);
@@ -196,6 +213,12 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("word") && content.equals("")) channel.sendMessage(markovCore.getRandomWord()).queue();
 	}
 
+	/**
+	 * Gets a markov sentence form the markov core and sends it to a specified channel
+	 * @param channel Channel that the markov sentence should be sent in
+	 * @param startingWord Word to start the message with
+	 * @param isTTS if the message should be sent using Text To Speech
+	 */
 	private void sendMarkovSentence(MessageChannel channel, String startingWord, boolean isTTS) {
 		channel.sendTyping().queue();
 
@@ -208,7 +231,7 @@ public class BotListener extends ListenerAdapter {
 
 	/**
 	 * Converts a User from an instance of {@link net.dv8tion.jda.core.entities.User} (for the API) to
-	 * {@link me.Usoka.markov.User} for the libraries used for the Markov
+	 * {@link me.Usoka.markov.User} for the libraries used with the markov core
 	 */
 	private me.Usoka.markov.User convertUserClass(User u) {
 		return new me.Usoka.markov.User(u.getIdLong(), u.getName(), u.getDiscriminator());
@@ -216,7 +239,7 @@ public class BotListener extends ListenerAdapter {
 
 	/**
 	 * Converts a Message from an instance of {@link net.dv8tion.jda.core.entities.Message} (for the API) to
-	 * {@link me.Usoka.markov.Message} for the libraries used for the Markov
+	 * {@link me.Usoka.markov.Message} for the libraries used with the markov core
 	 */
 	private me.Usoka.markov.Message convertMessageClass(Message m) {
 		return new me.Usoka.markov.Message(m.getIdLong(), m.getContentRaw(), convertUserClass(m.getAuthor()));
@@ -226,21 +249,33 @@ public class BotListener extends ListenerAdapter {
 
 
 	/**
-	 * Gets all the messages in a channel, to a maximum of 1000 messages
-	 * @param channel channel to get messages from
-	 * @return List of the messages
+	 * Gets all the useful messages in a channel, to a maximum of 1000 messages
+	 * (to avoid API abuse. Will reduce when bot gets run more frequently). <br/>
+	 * Will exclude empty messages and messages sent by bot users. Stops looking back
+	 * through history when it finds a message earlier than the given earliestMessageID
+	 * @param channel TextChannel to retrieve messages from
+	 * @param tracker Message with embed used to track progress
+	 * @param baseEmbed Pre-set embed including field up to current channel
+	 * @param postFields Fields for embed after the channel current being searched
+	 * @param earliestMessageID long ID of the earliest message to get. Stops looking back
+	 *                          through history when it finds a message earlier than this one
+	 * @return <code>List</code> of all the messages. Excludes empty messages and bot messages
 	 */
 	private List<me.Usoka.markov.Message> getChannelMessages(TextChannel channel, Message tracker,
 															 EmbedBuilder baseEmbed, List<MessageEmbed.Field> postFields,
 															 long earliestMessageID) {
-		int count = 0;
+		int count = 0; //Count how many messages have been collected
 		List<me.Usoka.markov.Message> collectedMessages = new ArrayList<>();
 
 		for (Message message : channel.getIterableHistory()) {
+			//Ignore bots and empty messages
 			if (message.getAuthor().isBot() || message.getContentRaw().equals("")) continue;
-			if (message.getIdLong() < earliestMessageID) break; //Stop collecting messages
+			//Stop collecting messages if it's gone past the earliest message to go back to
+			if (message.getIdLong() <= earliestMessageID) break;
+
 			collectedMessages.add(convertMessageClass(message));
 
+			//Update the progress of message retrieval
 			if ((++count) % BATCH_SIZE == 0) {
 				//Create an updated version of the embed
 				EmbedBuilder updatedEmbed = new EmbedBuilder(baseEmbed);
@@ -260,7 +295,7 @@ public class BotListener extends ListenerAdapter {
 
 	/**
 	 * Collects all the messages from history for all channels and saves them to the source
-	 * @param progressMessage message with the embed that gets updated
+	 * @param progressMessage message with the embed that gets updated to show progress
 	 * @param earliestMessageID ID of the earliest message that the bot should look for
 	 */
 	private void saveChannelHistory(Message progressMessage, long earliestMessageID) {
@@ -269,11 +304,10 @@ public class BotListener extends ListenerAdapter {
 
 		//Create the base for the updated embed
 		EmbedBuilder embedBuilder = new EmbedBuilder();
-
-		embedBuilder.setTitle(targetEmbed.getTitle(),targetEmbed.getUrl())
-				.setThumbnail(targetEmbed.getThumbnail().getUrl()); //Set title/image
-		embedBuilder.setFooter(targetEmbed.getFooter().getText(), targetEmbed.getFooter().getIconUrl()); //Set footer
-		embedBuilder.setTimestamp(targetEmbed.getTimestamp()); //Set Timestamp
+		embedBuilder.setTitle(targetEmbed.getTitle(),targetEmbed.getUrl());								//Set title
+		embedBuilder.setThumbnail(targetEmbed.getThumbnail().getUrl());									//Set image
+		embedBuilder.setFooter(targetEmbed.getFooter().getText(), targetEmbed.getFooter().getIconUrl());//Set footer
+		embedBuilder.setTimestamp(targetEmbed.getTimestamp());											//Set Timestamp
 
 		//Track the fields after the current channel's
 		List<MessageEmbed.Field> fieldsAfter = new LinkedList<>(targetEmbed.getFields());
@@ -286,11 +320,11 @@ public class BotListener extends ListenerAdapter {
 			//Get the messages
 			List<me.Usoka.markov.Message> channelMessages = getChannelMessages(channel, progressMessage, embedBuilder, fieldsAfter, earliestMessageID);
 
-			//Partition channelMessages up into batches of 200 for saving, to better track progress
+			//Partition channelMessages up into batches of BATCH_SIZE for saving, to better track progress
 			List<List<me.Usoka.markov.Message>> batches = ListUtils.partition(channelMessages, BATCH_SIZE);
 
 			//Add each messages to the source material
-			int numSaved = 0;
+			int numSaved = 0; //Number of messages actually saved
 			for (List<me.Usoka.markov.Message> batch : batches) {
 				//Update the embed
 				EmbedBuilder updatedEmbed = new EmbedBuilder(embedBuilder);
@@ -304,10 +338,12 @@ public class BotListener extends ListenerAdapter {
 				numSaved += markovCore.updateMaterial(new ArrayList<>(batch));
 			}
 
+			//Add the now completed channel's correlating field to the base embed
 			embedBuilder.addField(channel.getName() +" [Complete]",
 					"Messages: "+ Integer.toString(channelMessages.size()) +"\r\nSaved: "+ numSaved,
 					false);
 		}
+		//Build and send the finalised embed showing all channels saved
 		progressMessage.editMessage(embedBuilder.build()).queue();
 	}
 
@@ -315,7 +351,9 @@ public class BotListener extends ListenerAdapter {
 	 * Go through the history of a given guild and save all messages from all TextChannels. <br/>
 	 * Logs progress with a message embed in the channel specified
 	 * @param guild Guild from which to get all the history
-	 * @param logChannel <code>TextChannel</code> to make the embed logging the progress
+	 * @param logChannel <code>TextChannel</code> to send message with embed logging the progress
+	 * @param messageContent Content to display in the message with the embed
+	 * @param earliestMessageID ID of the earliest message to retrieve history back to
 	 */
 	private void getAllChannelHistory(Guild guild, TextChannel logChannel, String messageContent, long earliestMessageID) {
 		EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -323,8 +361,10 @@ public class BotListener extends ListenerAdapter {
 		embedBuilder.setTitle(guild.getName(),"https://i.imgur.com/NqbaLqs.mp4").setThumbnail(guild.getIconUrl());
 		embedBuilder.setFooter("Started", null).setTimestamp(java.time.OffsetDateTime.now());
 
+		//Create embed fields based on all the text channels in the guild FIXME make it not add ignored channels and channels it can't access
 		guild.getTextChannels().forEach((channel) -> embedBuilder.addField(channel.getName() +" [Queued]","Messages: 0",false));
 
+		//Queue the message used to log progress, and when it's successfully sent call method for actually retrieving history
 		logChannel.sendMessage(messageContent).embed(embedBuilder.build()).queue((message) -> saveChannelHistory(message, earliestMessageID));
 	}
 
@@ -335,18 +375,18 @@ public class BotListener extends ListenerAdapter {
 	private void messageReceived(GuildMessageReceivedEvent event) {
 		if (event.getAuthor().isBot()) return; // ignore bot messages
 
+		//Get the message and content out of the event
 		Message message = event.getMessage();
 		String content = message.getContentRaw();
 
-		// It's a command! Parse the command and it's arguments
+		//If it starts with COMMAND_INITIALIZER then parse it and process it
 		if (content.startsWith(COMMAND_INITIALIZER) && !content.startsWith(COMMAND_INITIALIZER+" ")) {
 			//Read the command (from command init to first space)
 			String command = content.split("\\s+")[0].substring(1);
-			interpretCommand(event,
-					command.toLowerCase(),
-					(content.length() > command.length()+2)? content.substring(2 + command.length()) : "");
+			interpretCommand(event, command.toLowerCase(), (content.length() > command.length()+2)? content.substring(2 + command.length()) : "");
 		}
 
+		//Also save the content of the message (even trying to save commands, in case they weren't real commands
 		markovCore.saveMaterial(convertMessageClass(event.getMessage()));
 	}
 
@@ -357,15 +397,16 @@ public class BotListener extends ListenerAdapter {
 	private void messageUpdated(GuildMessageUpdateEvent event) {
 		if (event.getAuthor().isBot()) return; // ignore bot messages
 
-		Message message = event.getMessage();
-		markovCore.updateMaterial(convertMessageClass(message));
+		//Update the message in the source (will also save if the message wasn't previously recorded)
+		markovCore.updateMaterial(convertMessageClass(event.getMessage()));
 	}
 
 	/**
 	 * Handles when a message has been deleted in a TextChannel
-	 * @param event event associated with the Delete action
+	 * @param event event associated with the delete action
 	 */
 	private void messageDelete(GuildMessageDeleteEvent event) {
+		//Remove the message of matching ID from the source
 		markovCore.deleteMessage(event.getMessageId());
 	}
 
