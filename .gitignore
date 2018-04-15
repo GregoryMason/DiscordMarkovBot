@@ -1,0 +1,6 @@
+.idea/
+.gradle/
+out/
+src/main/resources/bot.config
+src/main/resources/markovData.db
+src/main/resources/sourceData.db

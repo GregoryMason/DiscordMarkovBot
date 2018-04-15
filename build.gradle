@@ -1,0 +1,24 @@
+plugins {
+    id'java'
+    id'application'
+    id'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+compileJava.options.encoding = 'UTF-8'
+
+mainClassName = 'me.Usoka.bot.Bot'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile 'net.dv8tion:JDA:3.5.1_350'
+    compile 'org.xerial:sqlite-jdbc:3.21.0'
+}
+
+version '1.0'
