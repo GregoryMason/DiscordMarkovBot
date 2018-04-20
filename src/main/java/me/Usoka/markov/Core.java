@@ -22,39 +22,45 @@ public class Core {
 	 * Create an instance of <code>Core</code> with a specified user to targer from initialisation
 	 * @param sqlSourceDatabaseDir directory for the SQLite Source database
 	 * @param sqlMarkovDatabaseDir directory for the SQLire Markov database
-	 * @param selectedUser specified user for the markov data. <code>null</code> can
-	 *                     be used to specify targeting all users
+	 * @param selectedUser specified user for the markov data. <code>null</code>
+	 *                     to target all users
 	 */
 	public Core(String sqlSourceDatabaseDir, String sqlMarkovDatabaseDir, User selectedUser) {
+		//TODO Ensure parameters are valid arguments (ie. check sqlSourceDatabaseDir and sqlMarkovDatabaseDir not null)
 		this.markovSource = new SQLiteSourceHandler(sqlSourceDatabaseDir);
 		this.markovData = new SQLiteDataHandler(sqlMarkovDatabaseDir);
 		this.currentUser = selectedUser;
-		getLexiconFromSource();
+		getLexiconFromData();
 	}
 
 	/**
-	 * Sets the target user for the Markov chain to build sentences and get data for
+	 * Sets the target user for the Markov chain. Sentences and data is based on <code>targetUser</code>
 	 * @param targetUser specified target user. <code>null</code> to set to all users
 	 */
 	public void setTargetUser(User targetUser) {
 		this.currentUser = targetUser;
-		getLexiconFromSource();
+		getLexiconFromData();
 	}
 
-	private void getLexiconFromSource() {
+	/**
+	 * Builds the lexicon (collection of all unique words) for the current target user.
+	 */
+	private void getLexiconFromData() {
 		if (currentUser == null) lexicon = markovData.getLexiconAll();
 		else lexicon = markovData.getLexiconFor(currentUser);
 	}
 
 	/**
-	 * @return how many words are in the lexicon for everyone
+	 * @return how many unique words are in the lexicon for everyone
 	 */
 	public int getAllLexiconSize() { return markovData.getLexiconSize(); }
 
 	/**
-	 * @return get the size of the lexicon for the current user
+	 * Get the size of the lexicon for the current target user
+	 * @return size of lexicon for the current target user
 	 */
 	public int getLexiconSize() {
+		//TODO confirm, is this just the same as lexicon.size()?
 		if (currentUser == null) return getAllLexiconSize();
 		return markovData.getLexiconSizeFor(currentUser);
 	}
@@ -64,21 +70,28 @@ public class Core {
 	 * @param user specified user to get the lexicon size for
 	 * @return how many words are in the lexicon associated with that user
 	 */
-	public int getLexiconSizeFor(User user) { return markovData.getLexiconSizeFor(user); }
+	public int getLexiconSizeFor(User user) {
+		//TODO reject null
+		return markovData.getLexiconSizeFor(user);
+	}
 
 	/**
 	 * Gets the frequency of a specified word for all users
 	 * @param word word to check frequency of
-	 * @return sum frequency of specified word in source
+	 * @return frequency of the specified word in the markov data
 	 */
-	public int getAllFrequencyOf(String word) { return markovData.getFrequencyAllOf(word); }
+	public int getAllFrequencyOf(String word) {
+		//TODO reject null
+		return markovData.getFrequencyAllOf(word);
+	}
 
 	/**
-	 * Finds the frequency of a specified word for the current user
+	 * Finds the frequency of a specified word for the current target user
 	 * @param word word to check frequency of
-	 * @return frequency of specified word in source
+	 * @return frequency of specified word in the markov data, for current user
 	 */
 	public int getFrequencyOf(String word) {
+		//TODO reject null
 		if (currentUser == null) return getAllFrequencyOf(word);
 		return markovData.getFrequencyOf(word, currentUser);
 	}
@@ -95,6 +108,7 @@ public class Core {
 	 * Returns the markov links (potential next words) for a specified word
 	 * @param word word to find markov links for
 	 * @return <code>List</code> of words that could follow that word
+	 * TODO change this to return a Map of word->frequency (this list can easily be made from one
 	 */
 	public List<String> getMarkovList(String word) {
 		if (currentUser == null) return markovData.getLinksAll(word);
@@ -102,9 +116,10 @@ public class Core {
 	}
 
 	/**
-	 * Returns the markov data (potential next words) for a specified word as a String
-	 * @param word word to find markov data for
-	 * @return what could follow that word
+	 * Builds a String of the markov data for a specified word, including frequencies of each.
+	 * Uses the markov data of the current target user
+	 * @param word word to find the markov links for
+	 * @return all words that can follow that word, and their frequencies
 	 */
 	public String getMarkovString(String word) {
 		List<String> linkEnds = getMarkovList(word);
@@ -113,6 +128,7 @@ public class Core {
 		Map<String, Integer> wordFreq = new HashMap<>();
 		for (String endWord : linkEnds) if (wordFreq.containsKey(endWord)) wordFreq.put(endWord, wordFreq.get(endWord) +1); else wordFreq.put(endWord, 1);
 
+		//Build the string, each word a new line formatted [freq] [word]
 		StringBuilder collatedString = new StringBuilder();
 		for (String endWord : wordFreq.keySet()) {
 			int freq = wordFreq.get(endWord);
@@ -124,7 +140,7 @@ public class Core {
 	}
 
 	/**
-	 * Picks a random word from the lexicon and returns it
+	 * Gets a random word from the current target user's lexicon
 	 * @return the chosen word
 	 */
 	public String getRandomWord() {
@@ -133,9 +149,16 @@ public class Core {
 		return lexicon.get((int)(Math.random() * lexicon.size()));
 	}
 
+	/**
+	 * Picks a next word to use in a markov chain, based on the links from the current word
+	 * <br/> Note: Has a 1 in 50 chance of picking a completely random word instead
+	 * @param precedingWord the word which this one will follow
+	 * @return the chosen next word
+	 */
 	private String getNextWord(String precedingWord) {
 		String returnWord = getRandomWord();
 
+		//Get all the words which are linked in the markov data from precedingWord
 		List<String> linkedWords = getMarkovList(precedingWord);
 		if (linkedWords.size() == 0) return "";
 
@@ -146,21 +169,22 @@ public class Core {
 	}
 
 	/**
-	 * Build a sentence from a provided word using markov chains
-	 * @param startWord word to start the sentence with
+	 * Build a sentence from a provided word using the markov data of the current target user
+	 * @param startWord specified word to start building the sentence from
 	 * @return the completed sentence
 	 */
 	private String buildSentence(String startWord) {
 		StringBuilder sentence = new StringBuilder();
-		String precedingWord = startWord; String nextWord;
+		String precedingWord = startWord, nextWord;
 
+		//Begin the sentence with the provided word
 		sentence.append(precedingWord).append(" ");
 
 		int repeatCount = 0;
 
 		while (sentence.length() < 500) { //Make sure sentences can't become too long
 			nextWord = getNextWord(precedingWord);
-			if (nextWord.equals("")) break; //try/catch block
+			if (nextWord.equals("")) break;
 
 			sentence.append(nextWord).append(" ");
 
@@ -168,33 +192,35 @@ public class Core {
 			if (precedingWord.equals(nextWord)) repeatCount++; else repeatCount = 0;
 			precedingWord = nextWord;
 
-			//Random chance of stopping the sentence, influenced by how many words follow the new word, how common it is, and how many times it's repeated
+			//Random chance of stopping the sentence
+			//Less likely to stop if the last word has more words that follow it
+				//or if the word occurs more frequently
+			//More likely to stop the sentence if the word has repeated multiple times
 			if ((int) (Math.random() * (10 + getMarkovList(nextWord).size() + getFrequencyOf(nextWord) - repeatCount + 2)) <= 2) break;
 		}
 		return sentence.toString();
 	}
 
 	/**
-	 * Get a sentence starting with a random word
+	 * Get a markov chain sentence starting with a random word
 	 * @return the sentence generated
 	 */
-	public String getSentence() {
-		return buildSentence(getRandomWord());
-	}
+	public String getSentence() { return buildSentence(getRandomWord()); }
 
 	/**
-	 * Get a sentence starting with a specified word
+	 * Get a markov chain sentence starting with a specified word
 	 * @param startWord word to start sentence with
-	 * @return completed sentence
+	 * @return the sentence generated from the word
 	 */
 	public String getSentence(String startWord) {
+		//Ensure the user has said that word before
 		if (!lexicon.contains(startWord)) return "\""+ startWord +"\" not found in lexicon";
 		return buildSentence(startWord);
 	}
 
 	/**
 	 * Get the ID of the most recent message
-	 * @return ID
+	 * @return message ID as String
 	 */
 	public String getMostRecentID() {
 		try {
@@ -208,7 +234,7 @@ public class Core {
 	 * @param user user that should be matched in the source
 	 */
 	public void ensureUser(User user) {
-		//TODO
+		//TODO Call relevant method in SourceHandler when created
 	}
 
 	/**
@@ -246,7 +272,7 @@ public class Core {
 
 	/**
 	 * Updates an existing message in the source material
-	 * @param message message to update
+	 * @param message updated version of the message
 	 */
 	public void updateMaterial(Message message) {
 		if (markovSource == null) return;
@@ -314,7 +340,7 @@ public class Core {
 	 * Deletes a specified message from the source by given messageID
 	 * @param messageID ID of message to remove
 	 */
-	public boolean deleteMessage(String messageID) { return markovSource.deleteMessage(messageID); }
+	public void deleteMessage(String messageID) { markovSource.deleteMessage(messageID); }
 
 	/**
 	 * Counts the number of messages in the file used for Markov source
