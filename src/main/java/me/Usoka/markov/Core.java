@@ -97,14 +97,6 @@ public class Core {
 	}
 
 	/**
-	 * @return how many words (counting multiple appearances) are in the source material
-	 */
-	public int getSumAllWords() {
-		if (currentUser == null) return 0;
-		return markovData.getFrequencyAllWordsFor(currentUser);
-	}
-
-	/**
 	 * Returns the markov links (potential next words) for a specified word
 	 * @param word word to find markov links for
 	 * @return <code>List</code> of words that could follow that word
