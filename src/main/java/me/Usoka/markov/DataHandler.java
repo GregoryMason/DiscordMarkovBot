@@ -19,16 +19,6 @@ public interface DataHandler {
 
 	int getFrequencyAllOf(String word);
 
-	/**
-	 * TODO improve method name
-	 */
-	int getFrequencyAllWordsFor(User user);
-
-	/**
-	 * TODO I mean seriously, that's a mouthful
-	 */
-	int getFrequencyAllWords();
-
 	List<String> getLexiconAll();
 
 	List<String> getLexiconFor(User user);

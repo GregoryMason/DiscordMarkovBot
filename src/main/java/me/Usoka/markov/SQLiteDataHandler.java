@@ -78,29 +78,6 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public int getFrequencyAllWordsFor(User user) {
-		if (sqlDatabase == null) return 0;
-		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE userID = ?";
-
-		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
-			prepState.setLong(1, user.getIdLong());
-			return prepState.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
-		return 0;
-	}
-
-	@Override
-	public int getFrequencyAllWords() {
-		if (sqlDatabase == null) return 0;
-		String query = "SELECT sum(frequency) FROM user_lexicons";
-
-		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
-			return prepState.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
-		return 0;
-	}
-
-	@Override
 	public List<String> getLexiconAll() {
 		if (sqlDatabase == null) return new ArrayList<>();
 		String query = "SELECT DISTINCT word FROM user_lexicons";
