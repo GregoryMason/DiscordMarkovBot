@@ -56,7 +56,7 @@ public interface SourceHandler {
 	 * @return if the source data contains a user with matching ID
 	 * @throws Exception if there is an error reading from the source
 	 */
-	boolean containsUserID(String userID) throws Exception;
+	boolean containsUserByID(String userID) throws Exception;
 
 	/**
 	 * Gets the String ID of the most recent message in the source data
@@ -71,5 +71,5 @@ public interface SourceHandler {
 	 * @return number of messages which the user has sent
 	 * @throws Exception if there is an error reading from the source
 	 */
-	int countMessagesFromUser(User user) throws Exception;
+	int countMessagesFrom(User user) throws Exception;
 }
