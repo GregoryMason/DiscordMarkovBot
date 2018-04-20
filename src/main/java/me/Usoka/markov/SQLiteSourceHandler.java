@@ -171,7 +171,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 	}
 
 	@Override
-	public boolean containsUserID(String userID) throws SQLException {
+	public boolean containsUserByID(String userID) throws SQLException {
 		String blankQuery = "SELECT EXISTS ( SELECT * FROM users WHERE userID = ?)";
 
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuery)) {
@@ -192,7 +192,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 	}
 
 	@Override
-	public int countMessagesFromUser(User user) throws SQLException{
+	public int countMessagesFrom(User user) throws SQLException{
 		String blankQuerry = "SELECT count(*) FROM users " +
 				"LEFT JOIN user_messages ON users.userID = user_messages.userID " +
 				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +
