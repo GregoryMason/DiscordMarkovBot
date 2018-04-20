@@ -53,7 +53,7 @@ public class Core {
 	/**
 	 * @return how many unique words are in the lexicon for everyone
 	 */
-	public int getAllLexiconSize() { return markovData.getLexiconSize(); }
+	public int getAllLexiconSize() { return markovData.getLexiconSizeAll(); }
 
 	/**
 	 * Get the size of the lexicon for the current target user
@@ -82,7 +82,7 @@ public class Core {
 	 */
 	public int getAllFrequencyOf(String word) {
 		//TODO reject null
-		return markovData.getFrequencyAllOf(word);
+		return markovData.getWordFrequencyAll(word);
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class Core {
 	public int getFrequencyOf(String word) {
 		//TODO reject null
 		if (currentUser == null) return getAllFrequencyOf(word);
-		return markovData.getFrequencyOf(word, currentUser);
+		return markovData.getWordFrequencyFor(word, currentUser);
 	}
 
 	/**
@@ -248,7 +248,7 @@ public class Core {
 			}
 
 			//Ensure the author of the message exists in the source
-			if (!markovSource.containsUserID(message.getAuthor().getId())) {
+			if (!markovSource.containsUserByID(message.getAuthor().getId())) {
 				//Add the user to the source
 				if (!markovSource.saveUser(message.getAuthor())) {
 					throw new Exception("Adding user ("+ message.getAuthor().getId() +"|"+ message.getAuthor().getName() +") failed");
@@ -308,7 +308,7 @@ public class Core {
 			try { //Ensure all users are in the source
 				if (!users.contains(message.getAuthor().getId())) {
 					//If they aren't, add them
-					if (!markovSource.containsUserID(message.getAuthor().getId())) {
+					if (!markovSource.containsUserByID(message.getAuthor().getId())) {
 						if (!markovSource.saveUser(message.getAuthor())) {
 							throw new Exception("Adding user ("+ message.getAuthor().getId() +
 									"|"+ message.getAuthor().getName() +") failed");
@@ -341,6 +341,6 @@ public class Core {
 	public int getSourceCountOf(User targetUser) throws Exception{
 		if (markovSource == null) throw new Exception("Markov Source not configured");
 
-		return markovSource.countMessagesFromUser(targetUser);
+		return markovSource.countMessagesFrom(targetUser);
 	}
 }
