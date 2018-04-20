@@ -30,7 +30,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public int getLexiconSize() {
+	public int getLexiconSizeAll() {
 		if (sqlDatabase == null) return 0;
 		String query = "SELECT count(DISTINCT word) FROM user_lexicons";
 
@@ -53,25 +53,25 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public int getFrequencyOf(String word, User user) {
+	public int getWordFrequencyAll(String word) {
 		if (sqlDatabase == null) return 0;
-		String blankQuery = "SELECT frequency FROM user_lexicons WHERE userID = ? AND word = ?";
+		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE word = ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
-			prepState.setLong(1, user.getIdLong());
-			prepState.setString(2, word);
+			prepState.setString(1, word);
 			return prepState.executeQuery().getInt(1);
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 		return 0;
 	}
 
 	@Override
-	public int getFrequencyAllOf(String word) {
+	public int getWordFrequencyFor(String word, User user) {
 		if (sqlDatabase == null) return 0;
-		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE word = ?";
+		String blankQuery = "SELECT frequency FROM user_lexicons WHERE userID = ? AND word = ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
-			prepState.setString(1, word);
+			prepState.setLong(1, user.getIdLong());
+			prepState.setString(2, word);
 			return prepState.executeQuery().getInt(1);
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 		return 0;
@@ -109,17 +109,15 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLinksFor(User user, String word) {
+	public List<String> getLinksAll(String word) {
 		if (sqlDatabase == null) return new ArrayList<>();
-		String blankQuery = "SELECT links.endWord, user_links.frequency FROM users " +
-				"LEFT JOIN user_links ON users.userID = user_links.userID " +
+		String blankQuery = "SELECT links.endWord, user_links.frequency FROM user_links " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
-				"WHERE users.userID = ? AND links.startWord = ?";
+				"WHERE links.startWord = ?";
 
 		List<String> markovLinks = new ArrayList<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
-			prepState.setLong(1, user.getIdLong());
-			prepState.setString(2, word.toLowerCase());
+			prepState.setString(1, word.toLowerCase());
 
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) {
@@ -134,15 +132,17 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLinksAll(String word) {
+	public List<String> getLinksFor(User user, String word) {
 		if (sqlDatabase == null) return new ArrayList<>();
-		String blankQuery = "SELECT links.endWord, user_links.frequency FROM user_links " +
+		String blankQuery = "SELECT links.endWord, user_links.frequency FROM users " +
+				"LEFT JOIN user_links ON users.userID = user_links.userID " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
-				"WHERE links.startWord = ?";
+				"WHERE users.userID = ? AND links.startWord = ?";
 
 		List<String> markovLinks = new ArrayList<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
-			prepState.setString(1, word.toLowerCase());
+			prepState.setLong(1, user.getIdLong());
+			prepState.setString(2, word.toLowerCase());
 
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) {
