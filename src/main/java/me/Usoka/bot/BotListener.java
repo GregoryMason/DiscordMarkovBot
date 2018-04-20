@@ -224,6 +224,7 @@ public class BotListener extends ListenerAdapter {
 
 		//Get the constructed sentence
 		String sentence = (startingWord.equals(""))? markovCore.getSentence() : markovCore.getSentence(startingWord);
+		//TODO escape user mentions in constructed sentences
 		//Send the message to the channel (or specify that it couldn't build the sentence for current user)
 		channel.sendMessage((sentence.matches("^(\\s+)?$"))? "No source data for current user" : sentence).tts(isTTS).queue();
 	}
