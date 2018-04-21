@@ -1,5 +1,7 @@
 package me.Usoka.markov;
 
+import com.sun.istack.internal.NotNull;
+
 import java.util.List;
 
 public interface SourceHandler {
@@ -71,5 +73,5 @@ public interface SourceHandler {
 	 * @return number of messages which the user has sent
 	 * @throws Exception if there is an error reading from the source
 	 */
-	int countMessagesFrom(User user) throws Exception;
+	int countMessagesFrom(@NotNull User user) throws Exception;
 }

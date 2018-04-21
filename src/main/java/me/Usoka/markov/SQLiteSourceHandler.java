@@ -1,5 +1,7 @@
 package me.Usoka.markov;
 
+import com.sun.istack.internal.NotNull;
+
 import java.sql.*;
 import java.util.List;
 
@@ -10,7 +12,8 @@ public class SQLiteSourceHandler implements SourceHandler {
 	/**
 	 * @param databaseDirectory directory for the SQLite database
 	 */
-	public SQLiteSourceHandler(String databaseDirectory) {
+	public SQLiteSourceHandler(@NotNull String databaseDirectory) {
+		if (databaseDirectory.equals("")) throw new IllegalArgumentException("Database directory cannot be empty String");
 		sqlDirectory = databaseDirectory;
 		sqlDatabase = connect("jdbc:sqlite:"+ databaseDirectory);
 	}
@@ -30,7 +33,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean saveMessage(Message message) {
-		if (sqlDatabase == null) return false;
+		if (message == null) return false;
 		String blankMessagesQuery = "INSERT OR IGNORE INTO messages (messageID, content) VALUES (?,?)";
 		String blankLinkQuery = "INSERT OR IGNORE INTO user_messages (userID, messageID) VALUES (?,?)";
 
@@ -57,7 +60,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean updateMessage(Message message) {
-		if (sqlDatabase == null) return false;
+		if (message == null) return false;
 		String blankQuery = "REPLACE INTO messages (messageID, content) VALUES (?,?)";
 
 		try {
@@ -75,7 +78,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean updateMessages(List<Message> messages) {
-		if (sqlDatabase == null) return false;
+		if (messages == null) return false;
 		String messagesBlank = "REPLACE INTO messages (messageID, content) VALUES (?,?)";
 		String user_messagesBlank = "REPLACE INTO user_messages (userID, messageID) VALUES (?,?)";
 
@@ -84,7 +87,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 			//Create the prepared statements for each of the messages
 			for (Message message : messages) {
-				if (message.getContentCleaned().equals("")) continue;
+				if (message == null || message.getContentCleaned().equals("")) continue;
 				PreparedStatement messagesPrep = sqlDatabase.prepareStatement(messagesBlank);
 				messagesPrep.setLong(1, message.getIdLong());
 				messagesPrep.setString(2, message.getContentCleaned());
@@ -110,7 +113,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean deleteMessage(String messageID) {
-		if (sqlDatabase == null) return false;
+		if (messageID == null) return false;
 		String messagesBlank = "DELETE FROM messages WHERE messageID = ?";
 		String user_messagesBlank = "DELETE FROM user_messages WHERE messageID = ?";
 
@@ -139,6 +142,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean containsMessageID(String messageID) throws SQLException {
+		if (messageID == null) return false;
 		String blankQuery = "SELECT EXISTS ( SELECT * FROM messages WHERE messageID = ?)";
 
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuery)) {
@@ -151,7 +155,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean saveUser(User user) {
-		if (sqlDatabase == null) return false;
+		if (user == null) return false;
 		String blankQuery = "REPLACE INTO users (userID, username, discriminator) VALUES (?,?,?)";
 
 		try {
@@ -172,6 +176,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public boolean containsUserByID(String userID) throws SQLException {
+		if (userID == null) return false;
 		String blankQuery = "SELECT EXISTS ( SELECT * FROM users WHERE userID = ?)";
 
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuery)) {
@@ -192,7 +197,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 	}
 
 	@Override
-	public int countMessagesFrom(User user) throws SQLException{
+	public int countMessagesFrom(@NotNull User user) throws SQLException{
 		String blankQuerry = "SELECT count(*) FROM users " +
 				"LEFT JOIN user_messages ON users.userID = user_messages.userID " +
 				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +

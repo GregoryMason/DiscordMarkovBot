@@ -1,5 +1,7 @@
 package me.Usoka.markov;
 
+import com.sun.istack.internal.NotNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -16,14 +18,14 @@ public interface DataHandler {
 	 * @param user specified user for lexicon
 	 * @return number of unique words
 	 */
-	int getLexiconSizeFor(User user);
+	int getLexiconSizeFor(@NotNull User user);
 
 	/**
 	 * Gets how many times any use has said a specified word
 	 * @param word specified word to find the frequency of
 	 * @return total number of times any user has said the word
 	 */
-	int getWordFrequencyAll(String word);
+	int getWordFrequencyAll(@NotNull String word);
 
 	/**
 	 * Gets the frequency for a specified word, and a specified user. (how
@@ -32,7 +34,7 @@ public interface DataHandler {
 	 * @param user specified user to find the frequency for
 	 * @return number of times the user has said the word
 	 */
-	int getWordFrequencyFor(String word, User user);
+	int getWordFrequencyFor(@NotNull String word, @NotNull User user);
 
 	/**
 	 * Gets the complete list of unique words said by all users
@@ -45,7 +47,7 @@ public interface DataHandler {
 	 * @param user specified user to get the lexicon for
 	 * @return <code>List</code> containing all words from that user
 	 */
-	List<String> getLexiconFor(User user);
+	List<String> getLexiconFor(@NotNull User user);
 
 	/**
 	 * Gets the words that are linked to from a given one, for all
@@ -53,7 +55,7 @@ public interface DataHandler {
 	 * @param word specified word to get links from
 	 * @return <code>Map</code> of the linked words to their frequencies
 	 */
-	Map <String, Integer> getLinksAll(String word);
+	Map <String, Integer> getLinksAll(@NotNull String word);
 
 	/**
 	 * Gets the words that are linked to from a given word, for a specified
@@ -62,5 +64,5 @@ public interface DataHandler {
 	 * @param word specified word to get links from
 	 * @return <code>Map</code> of the linked words to their frequencies
 	 */
-	Map<String, Integer> getLinksFor(User user, String word);
+	Map<String, Integer> getLinksFor(@NotNull User user, @NotNull String word);
 }
