@@ -2,7 +2,9 @@ package me.Usoka.markov;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SQLiteDataHandler implements DataHandler {
 	private String sqlDirectory;
@@ -109,22 +111,19 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLinksAll(String word) {
-		if (sqlDatabase == null) return new ArrayList<>();
+	public Map<String, Integer> getLinksAll(String word) {
+		if (sqlDatabase == null) return new HashMap<>();
 		String blankQuery = "SELECT links.endWord, user_links.frequency FROM user_links " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
 				"WHERE links.startWord = ?";
 
-		List<String> markovLinks = new ArrayList<>();
+		Map<String, Integer> markovLinks = new HashMap<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setString(1, word.toLowerCase());
 
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) {
-				String endWord = rs.getString(1);
-				for (int i = 0; i < rs.getInt(2); i++) {
-					markovLinks.add(endWord);
-				}
+				markovLinks.put(rs.getString(1), rs.getInt(2));
 			}
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 
@@ -132,24 +131,21 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLinksFor(User user, String word) {
-		if (sqlDatabase == null) return new ArrayList<>();
+	public Map<String, Integer> getLinksFor(User user, String word) {
+		if (sqlDatabase == null) return new HashMap<>();
 		String blankQuery = "SELECT links.endWord, user_links.frequency FROM users " +
 				"LEFT JOIN user_links ON users.userID = user_links.userID " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
 				"WHERE users.userID = ? AND links.startWord = ?";
 
-		List<String> markovLinks = new ArrayList<>();
+		Map<String, Integer> markovLinks = new HashMap<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setLong(1, user.getIdLong());
 			prepState.setString(2, word.toLowerCase());
 
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) {
-				String endWord = rs.getString(1);
-				for (int i = 0; i < rs.getInt(2); i++) {
-					markovLinks.add(endWord);
-				}
+				markovLinks.put(rs.getString(1), rs.getInt(2));
 			}
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 

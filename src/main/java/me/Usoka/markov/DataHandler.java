@@ -1,6 +1,7 @@
 package me.Usoka.markov;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DataHandler {
 
@@ -48,20 +49,18 @@ public interface DataHandler {
 
 	/**
 	 * Gets the words that are linked to from a given one, for all
-	 * users in the markov data
+	 * users in the markov data. Words are mapped to how often they have occurred
 	 * @param word specified word to get links from
-	 * @return <code>List</code> containing all linked words
-	 * TODO update this to a HashMap of linkedWord->frequency
+	 * @return <code>Map</code> of the linked words to their frequencies
 	 */
-	List <String> getLinksAll(String word);
+	Map <String, Integer> getLinksAll(String word);
 
 	/**
 	 * Gets the words that are linked to from a given word, for a specified
-	 * user, in the markov data
+	 * user, in the markov data. Words are mapped to how often they have occurred
 	 * @param user specified user to get the markov links for
 	 * @param word specified word to get links from
-	 * @return <code>List</code> containing all linked words
-	 * TODO update this to a HashMap of linkedWord->frequency
+	 * @return <code>Map</code> of the linked words to their frequencies
 	 */
-	List<String> getLinksFor(User user, String word);
+	Map<String, Integer> getLinksFor(User user, String word);
 }

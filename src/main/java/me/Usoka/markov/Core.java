@@ -99,12 +99,32 @@ public class Core {
 	/**
 	 * Returns the markov links (potential next words) for a specified word
 	 * @param word word to find markov links for
-	 * @return <code>List</code> of words that could follow that word
-	 * TODO change this to return a Map of word->frequency (this list can easily be made from one
+	 * @return <code>Map</code> of linked words to their frequencies
 	 */
-	public List<String> getMarkovList(String word) {
+	public Map<String, Integer> getMarkovLinks(String word) {
 		if (currentUser == null) return markovData.getLinksAll(word);
 		return markovData.getLinksFor(currentUser, word);
+	}
+
+	/**
+	 * Returns a <code>List</code> of all markov links for a specified word.
+	 * Each word appears in the list the number of times associated with it's
+	 * frequency (how many times it's followed the provided word)
+	 * @param word specified word to find the markov links for
+	 * @return <code>List</code> of linked words, appearing as many times as their frequency
+	 */
+	public List<String> getMarkovLinksAsList(String word) {
+		List<String> markovLinkList = new ArrayList<>();
+		Map<String, Integer> wordFreqMap = getMarkovLinks(word);
+
+		//Go through each of the words in the Map
+		for (String key : wordFreqMap.keySet()) {
+			//Add it to the list the same number of times as it's frequency
+			for (int i = 0; i < wordFreqMap.get(key); i++) {
+				markovLinkList.add(key);
+			}
+		}
+		return markovLinkList;
 	}
 
 	/**
@@ -114,16 +134,12 @@ public class Core {
 	 * @return all words that can follow that word, and their frequencies
 	 */
 	public String getMarkovString(String word) {
-		List<String> linkEnds = getMarkovList(word);
-
-		//Build a hashMap for displaying the information
-		Map<String, Integer> wordFreq = new HashMap<>();
-		for (String endWord : linkEnds) if (wordFreq.containsKey(endWord)) wordFreq.put(endWord, wordFreq.get(endWord) +1); else wordFreq.put(endWord, 1);
+		Map<String, Integer> linkEnds = getMarkovLinks(word);
 
 		//Build the string, each word a new line formatted [freq] [word]
 		StringBuilder collatedString = new StringBuilder();
-		for (String endWord : wordFreq.keySet()) {
-			int freq = wordFreq.get(endWord);
+		for (String endWord : linkEnds.keySet()) {
+			int freq = linkEnds.get(endWord);
 			collatedString.append(freq).append((freq > 10)? ((freq > 100)? "": " "):"  ")	//Add the frequency
 					.append(endWord).append("\r\n");										//And the word itself
 		}
@@ -151,7 +167,7 @@ public class Core {
 		String returnWord = getRandomWord();
 
 		//Get all the words which are linked in the markov data from precedingWord
-		List<String> linkedWords = getMarkovList(precedingWord);
+		List<String> linkedWords = getMarkovLinksAsList(precedingWord);
 		if (linkedWords.size() == 0) return "";
 
 		//If it's not going to remain a random word, return a random one from the links
@@ -185,10 +201,9 @@ public class Core {
 			precedingWord = nextWord;
 
 			//Random chance of stopping the sentence
-			//Less likely to stop if the last word has more words that follow it
-				//or if the word occurs more frequently
+			//Less likely to stop if the last word has more words that follow it or if the word occurs more frequently
 			//More likely to stop the sentence if the word has repeated multiple times
-			if ((int) (Math.random() * (10 + getMarkovList(nextWord).size() + getFrequencyOf(nextWord) - repeatCount + 2)) <= 2) break;
+			if ((int) (Math.random() * (10 + getMarkovLinksAsList(nextWord).size() + getFrequencyOf(nextWord) - repeatCount + 2)) <= 2) break;
 		}
 		return sentence.toString();
 	}
