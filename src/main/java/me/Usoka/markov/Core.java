@@ -2,6 +2,7 @@ package me.Usoka.markov;
 
 import com.sun.istack.internal.NotNull;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public class Core {
@@ -28,8 +29,13 @@ public class Core {
 	 *                     to target all users
 	 */
 	public Core(@NotNull String sqlSourceDatabaseDir, @NotNull String sqlMarkovDatabaseDir, User selectedUser) {
-		this.markovSource = new SQLiteSourceHandler(sqlSourceDatabaseDir);
-		this.markovData = new SQLiteDataHandler(sqlMarkovDatabaseDir);
+		try { //Try creating the SQLite database handlers
+			this.markovSource = new SQLiteSourceHandler(sqlSourceDatabaseDir);
+			this.markovData = new SQLiteDataHandler(sqlMarkovDatabaseDir);
+		} catch (SQLException e) {
+			throw new IllegalArgumentException("Invalid database directory, could not connect", e);
+		}
+
 		this.currentUser = selectedUser;
 		getLexiconFromData();
 	}

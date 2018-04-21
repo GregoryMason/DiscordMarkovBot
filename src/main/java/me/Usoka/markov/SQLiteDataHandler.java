@@ -9,29 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 public class SQLiteDataHandler implements DataHandler {
-	private String sqlDirectory;
 	private Connection sqlDatabase;
 
 	/**
 	 * @param databaseDirectory directory of the SQLite database
+	 * @throws SQLException if a database access error occurs when establishing the connection
 	 */
-	public SQLiteDataHandler(@NotNull String databaseDirectory) {
+	public SQLiteDataHandler(@NotNull String databaseDirectory) throws SQLException{
 		if (databaseDirectory.equals("")) throw new IllegalArgumentException("Database directory cannot be empty String");
-		sqlDirectory = databaseDirectory;
-		sqlDatabase = connect("jdbc:sqlite:"+ databaseDirectory);
-	}
-
-	/**
-	 * Creates a connection to the SQLite Database
-	 * @param url URL/Directory of the database
-	 * @return the connection or <i>null</i> if connection fails
-	 */
-	private Connection connect(String url) {
-		Connection conn = null;
-		try {
-			conn = DriverManager.getConnection(url);
-		} catch (SQLException e) { System.out.println("SQL Error: "+ e); }
-		return conn;
+		sqlDatabase = DriverManager.getConnection(databaseDirectory);
 	}
 
 	@Override
