@@ -15,6 +15,8 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import org.apache.commons.collections4.ListUtils;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * TODO split into multiple classes, this has gotten too big/complicates <p/>
@@ -27,6 +29,16 @@ public class BotListener extends ListenerAdapter {
 	 * Character that is used for initialising commands for this bot ({@value})
 	 */
 	private static final String COMMAND_INITIALIZER = "!";
+
+	/**
+	 * String regex for finding user mentions
+	 */
+	private static final String MENTION_REGEX = "<@!?(\\d+)>";
+
+	/**
+	 * Pattern used to recognise if a user is mentioned
+	 */
+	private static final Pattern MENTION_PATTERN = Pattern.compile(MENTION_REGEX);
 
 	/**
 	 * Path to resource folder from where the program runs
@@ -158,9 +170,9 @@ public class BotListener extends ListenerAdapter {
 
 
 		if (command.equals("source")) {
-			if (content.matches("^<@!?[0-9]*>$")) {
+			if (MENTION_PATTERN.matcher(content).find()) {
 
-				User targetUser = event.getJDA().getUserById(content.replaceFirst("^<@!?", "").replaceFirst(">$", ""));
+				User targetUser = event.getJDA().getUserById(content.replaceFirst(MENTION_REGEX, "$1"));
 				int messageCount = 0;
 
 				if (targetUser != null) try { messageCount = markovCore.getSourceCountOf(convertUserClass(targetUser)); } catch (Exception ignored) {}
@@ -170,9 +182,9 @@ public class BotListener extends ListenerAdapter {
 		}
 
 		if (command.equals("setuser")) {
-			if (content.matches("^<@!?[0-9]*>$")) {
+			if (MENTION_PATTERN.matcher(content).find()) {
 				//String the mention down to just the user ID, then get the user through the api
-				String targetUserID = content.replaceFirst("^<@!?", "").replaceFirst(">$", "");
+				String targetUserID = content.replaceFirst(MENTION_REGEX, "$1");
 				User targetUser = event.getJDA().getUserById(targetUserID);
 
 				if (targetUser != null) try {
@@ -224,7 +236,23 @@ public class BotListener extends ListenerAdapter {
 
 		//Get the constructed sentence
 		String sentence = (startingWord.equals(""))? markovCore.getSentence() : markovCore.getSentence(startingWord);
-		//TODO escape user mentions in constructed sentences
+
+		//Escape user mentions in constructed sentences
+		Matcher mentionMatcher = MENTION_PATTERN.matcher(sentence);
+		while (mentionMatcher.find()) {
+			//Extract just the user ID from the mention
+			String mentionedUserID = mentionMatcher.group().replaceFirst(MENTION_REGEX, "$1");
+			//Use the ID to get the user that has been mentioned
+			User mentionedUser = channel.getJDA().getUserById(mentionedUserID);
+			if (mentionedUser == null) continue; //api can't find the user, so mention won't ping anyone
+
+			//Make the escaped form of the mention
+			String escapedMention = "@"+ mentionedUser.getName() +"#"+ mentionedUser.getDiscriminator();
+
+			//Replace occurrence of mention to the non-mention form, and make it bold
+			sentence = sentence.replaceFirst(mentionMatcher.group(), "**"+ escapedMention +"**");
+		}
+
 		//Send the message to the channel (or specify that it couldn't build the sentence for current user)
 		channel.sendMessage((sentence.matches("^(\\s+)?$"))? "No source data for current user" : sentence).tts(isTTS).queue();
 	}
