@@ -1,5 +1,7 @@
 package me.Usoka.markov;
 
+import com.sun.istack.internal.NotNull;
+
 import java.util.*;
 
 public class Core {
@@ -14,19 +16,18 @@ public class Core {
 	 * @param sqlSourceDatabaseDir directory for the SQLite Source database
 	 * @param sqlMarkovDatabaseDir directory for the SQLire Markov database
 	 */
-	public Core(String sqlSourceDatabaseDir, String sqlMarkovDatabaseDir) {
+	public Core(@NotNull String sqlSourceDatabaseDir, @NotNull String sqlMarkovDatabaseDir) {
 		this(sqlSourceDatabaseDir,sqlMarkovDatabaseDir,null);
 	}
 
 	/**
-	 * Create an instance of <code>Core</code> with a specified user to targer from initialisation
+	 * Create an instance of <code>Core</code> with a specified user to target from initialisation
 	 * @param sqlSourceDatabaseDir directory for the SQLite Source database
 	 * @param sqlMarkovDatabaseDir directory for the SQLire Markov database
 	 * @param selectedUser specified user for the markov data. <code>null</code>
 	 *                     to target all users
 	 */
-	public Core(String sqlSourceDatabaseDir, String sqlMarkovDatabaseDir, User selectedUser) {
-		//TODO Ensure parameters are valid arguments (ie. check sqlSourceDatabaseDir and sqlMarkovDatabaseDir not null)
+	public Core(@NotNull String sqlSourceDatabaseDir, @NotNull String sqlMarkovDatabaseDir, User selectedUser) {
 		this.markovSource = new SQLiteSourceHandler(sqlSourceDatabaseDir);
 		this.markovData = new SQLiteDataHandler(sqlMarkovDatabaseDir);
 		this.currentUser = selectedUser;
@@ -67,11 +68,10 @@ public class Core {
 
 	/**
 	 * Gets the size of the lexicon for a specified user
-	 * @param user specified user to get the lexicon size for
+	 * @param user user to get the lexicon size for
 	 * @return how many words are in the lexicon associated with that user
 	 */
-	public int getLexiconSizeFor(User user) {
-		//TODO reject null
+	public int getLexiconSizeFor(@NotNull User user) {
 		return markovData.getLexiconSizeFor(user);
 	}
 
@@ -80,8 +80,7 @@ public class Core {
 	 * @param word word to check frequency of
 	 * @return frequency of the specified word in the markov data
 	 */
-	public int getAllFrequencyOf(String word) {
-		//TODO reject null
+	public int getAllFrequencyOf(@NotNull String word) {
 		return markovData.getWordFrequencyAll(word);
 	}
 
@@ -90,8 +89,7 @@ public class Core {
 	 * @param word word to check frequency of
 	 * @return frequency of specified word in the markov data, for current user
 	 */
-	public int getFrequencyOf(String word) {
-		//TODO reject null
+	public int getFrequencyOf(@NotNull String word) {
 		if (currentUser == null) return getAllFrequencyOf(word);
 		return markovData.getWordFrequencyFor(word, currentUser);
 	}
@@ -101,7 +99,7 @@ public class Core {
 	 * @param word word to find markov links for
 	 * @return <code>Map</code> of linked words to their frequencies
 	 */
-	public Map<String, Integer> getMarkovLinks(String word) {
+	public Map<String, Integer> getMarkovLinks(@NotNull String word) {
 		if (currentUser == null) return markovData.getLinksAll(word);
 		return markovData.getLinksFor(currentUser, word);
 	}
@@ -110,10 +108,10 @@ public class Core {
 	 * Returns a <code>List</code> of all markov links for a specified word.
 	 * Each word appears in the list the number of times associated with it's
 	 * frequency (how many times it's followed the provided word)
-	 * @param word specified word to find the markov links for
+	 * @param word word to find the markov links for
 	 * @return <code>List</code> of linked words, appearing as many times as their frequency
 	 */
-	public List<String> getMarkovLinksAsList(String word) {
+	public List<String> getMarkovLinksAsList(@NotNull String word) {
 		List<String> markovLinkList = new ArrayList<>();
 		Map<String, Integer> wordFreqMap = getMarkovLinks(word);
 
@@ -133,7 +131,7 @@ public class Core {
 	 * @param word word to find the markov links for
 	 * @return all words that can follow that word, and their frequencies
 	 */
-	public String getMarkovString(String word) {
+	public String getMarkovString(@NotNull String word) {
 		Map<String, Integer> linkEnds = getMarkovLinks(word);
 
 		//Build the string, each word a new line formatted [freq] [word]
@@ -163,7 +161,7 @@ public class Core {
 	 * @param precedingWord the word which this one will follow
 	 * @return the chosen next word
 	 */
-	private String getNextWord(String precedingWord) {
+	private String getNextWord(@NotNull String precedingWord) {
 		String returnWord = getRandomWord();
 
 		//Get all the words which are linked in the markov data from precedingWord
@@ -182,6 +180,8 @@ public class Core {
 	 * @return the completed sentence
 	 */
 	private String buildSentence(String startWord) {
+		if (startWord == null) startWord = getRandomWord();
+
 		StringBuilder sentence = new StringBuilder();
 		String precedingWord = startWord, nextWord;
 
@@ -216,10 +216,12 @@ public class Core {
 
 	/**
 	 * Get a markov chain sentence starting with a specified word
-	 * @param startWord word to start sentence with
+	 * @param startWord word to start sentence with. If <code>null</code>,
+	 *                  defaults to a random word
 	 * @return the sentence generated from the word
 	 */
 	public String getSentence(String startWord) {
+		if (startWord == null) startWord = getRandomWord();
 		//Ensure the user has said that word before
 		if (!lexicon.contains(startWord)) return "\""+ startWord +"\" not found in lexicon";
 		return buildSentence(startWord);
@@ -240,7 +242,7 @@ public class Core {
 	 * Ensures there is a matching user in the source. Otherwise updates source to match provided user
 	 * @param user user that should be matched in the source
 	 */
-	public void ensureUser(User user) {
+	public void ensureUser(@NotNull User user) {
 		//TODO Call relevant method in SourceHandler when created
 	}
 
@@ -248,7 +250,7 @@ public class Core {
 	 * Saves a specified message to the source list
 	 * @param message message to save
 	 */
-	public void saveMaterial(Message message) {
+	public void saveMaterial(@NotNull Message message) {
 		if (markovSource == null) return;
 		String content = message.getContentCleaned();
 
@@ -281,7 +283,7 @@ public class Core {
 	 * Updates an existing message in the source material
 	 * @param message updated version of the message
 	 */
-	public void updateMaterial(Message message) {
+	public void updateMaterial(@NotNull Message message) {
 		if (markovSource == null) return;
 		//Check if it's already in source data, otherwise add it as a new message
 		try {
@@ -309,7 +311,7 @@ public class Core {
 	 * @param messages <code>List</code> of messages
 	 * @return how many messages were actually updated/saved
 	 */
-	public int updateMaterial(List<Message> messages) {
+	public int updateMaterial(@NotNull List<Message> messages) {
 		if (markovSource == null) return -1;
 		int numSaved = 0;
 
@@ -347,13 +349,16 @@ public class Core {
 	 * Deletes a specified message from the source by given messageID
 	 * @param messageID ID of message to remove
 	 */
-	public void deleteMessage(String messageID) { markovSource.deleteMessage(messageID); }
+	public void deleteMessage(@NotNull String messageID) {
+		if (messageID.equals("")) throw new IllegalArgumentException("messageID cannot be empty string");
+		markovSource.deleteMessage(messageID);
+	}
 
 	/**
 	 * Counts the number of messages in the file used for Markov source
 	 * @return number of lines/messages
 	 */
-	public int getSourceCountOf(User targetUser) throws Exception{
+	public int getSourceCountOf(@NotNull User targetUser) throws Exception{
 		if (markovSource == null) throw new Exception("Markov Source not configured");
 
 		return markovSource.countMessagesFrom(targetUser);

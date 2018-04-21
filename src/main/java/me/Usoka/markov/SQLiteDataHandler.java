@@ -1,5 +1,7 @@
 package me.Usoka.markov;
 
+import com.sun.istack.internal.NotNull;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +15,8 @@ public class SQLiteDataHandler implements DataHandler {
 	/**
 	 * @param databaseDirectory directory of the SQLite database
 	 */
-	public SQLiteDataHandler(String databaseDirectory) {
+	public SQLiteDataHandler(@NotNull String databaseDirectory) {
+		if (databaseDirectory.equals("")) throw new IllegalArgumentException("Database directory cannot be empty String");
 		sqlDirectory = databaseDirectory;
 		sqlDatabase = connect("jdbc:sqlite:"+ databaseDirectory);
 	}
@@ -43,7 +46,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public int getLexiconSizeFor(User user) {
+	public int getLexiconSizeFor(@NotNull User user) {
 		if (sqlDatabase == null) return 0;
 		String blankQuery = "SELECT count(word) FROM user_lexicons WHERE userID = ?";
 
@@ -55,7 +58,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public int getWordFrequencyAll(String word) {
+	public int getWordFrequencyAll(@NotNull String word) {
 		if (sqlDatabase == null) return 0;
 		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE word = ?";
 
@@ -67,7 +70,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public int getWordFrequencyFor(String word, User user) {
+	public int getWordFrequencyFor(@NotNull String word, @NotNull User user) {
 		if (sqlDatabase == null) return 0;
 		String blankQuery = "SELECT frequency FROM user_lexicons WHERE userID = ? AND word = ?";
 
@@ -95,7 +98,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLexiconFor(User user) {
+	public List<String> getLexiconFor(@NotNull User user) {
 		if (sqlDatabase == null) return new ArrayList<>();
 		String query = "SELECT word FROM user_lexicons WHERE userID = ?";
 
@@ -111,7 +114,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public Map<String, Integer> getLinksAll(String word) {
+	public Map<String, Integer> getLinksAll(@NotNull String word) {
 		if (sqlDatabase == null) return new HashMap<>();
 		String blankQuery = "SELECT links.endWord, sum(ALL user_links.frequency) FROM user_links " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
@@ -131,7 +134,7 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public Map<String, Integer> getLinksFor(User user, String word) {
+	public Map<String, Integer> getLinksFor(@NotNull User user, @NotNull String word) {
 		if (sqlDatabase == null) return new HashMap<>();
 		String blankQuery = "SELECT links.endWord, sum(ALL user_links.frequency) FROM users " +
 				"LEFT JOIN user_links ON users.userID = user_links.userID " +
