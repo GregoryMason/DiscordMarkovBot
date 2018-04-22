@@ -4,13 +4,13 @@ import me.Usoka.markov.Core;
 
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.message.guild.GenericGuildMessageEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import org.apache.commons.collections4.ListUtils;
 
@@ -46,9 +46,14 @@ public class BotListener extends ListenerAdapter {
 	private static final String RESOURCES_PATH = "src\\main\\resources\\";
 
 	/**
-	 * The default nickname which the bot uses for when it's running with data from all users
+	 * The default nickname for the bot
 	 */
 	private static final String DEFAULT_NICKNAME = "Markov Bot";
+
+	/**
+	 * Maximum length that a nickname can be
+	 */
+	private static final int NICKNAME_MAX_LENGTH = 32;
 
 	private String adminUserID;
 
@@ -107,7 +112,7 @@ public class BotListener extends ListenerAdapter {
 	 */
 	private void startBot(JDA api) {
 		Guild homeGuild = api.getGuildById(homeGuildID);
-		homeGuild.getController().setNickname(homeGuild.getSelfMember(), DEFAULT_NICKNAME).queue();
+		setBotNickname(homeGuild, DEFAULT_NICKNAME, "Auto set for bot start-up");
 
 		//Ensure the username and discriminator for all users are up to date
 		for (Member member : api.getGuildById(homeGuildID).getMembers()) {
@@ -187,31 +192,34 @@ public class BotListener extends ListenerAdapter {
 				String targetUserID = content.replaceFirst(MENTION_REGEX, "$1");
 				User targetUser = event.getJDA().getUserById(targetUserID);
 
-				if (targetUser != null) try {
+				if (targetUser != null) {
 					//Create the nickname for the bot, ensuring it's not over the character limit
 					String botNickname = targetUser.getName();
 					if (botNickname.length() > 28) botNickname = botNickname.substring(0,28);
 					botNickname += " Bot";
 
-					//Set the nickname, stating reason
-					event.getGuild().getController().setNickname(event.getGuild().getSelfMember(), botNickname).reason("Auto set nickname for changing source").queue();
+					//Set the nickname of the bot
+					setBotNickname(event.getGuild(), botNickname, "Auto set nickname for changing source");
 
-					//Set the target user FIXME won't get reached if InsufficientPermissionException is thrown
+					//Set the target user
 					markovCore.setTargetUser(convertUserClass(targetUser));
-
-				} catch (InsufficientPermissionException ignore) {} finally { //TODO check for permissions first, rather than catching
-					//Add reaction to message to confirm targetUser has been set
+					//Add reaction to message to confirm action completed
 					event.getMessage().addReaction("\uD83C\uDD97").queue();
+				} else {
+					//If API couldn't find target user, add reaction to show action failed
+					event.getMessage().addReaction("❌").queue();
 				}
-			}
-			if (content.toLowerCase().equals("all")) {
+			} else if (content.toLowerCase().equals("all")) {
 				//Set target user to null (aka all users)
 				markovCore.setTargetUser(null);
-				//Set nickname accordingly FIXME can throw InsufficientPermissionException
-				event.getGuild().getController().setNickname(event.getGuild().getSelfMember(), DEFAULT_NICKNAME).reason("Auto reset nickname for all users").queue();
+
+				setBotNickname(event.getGuild(), DEFAULT_NICKNAME, "Auto reset nickname for all users");
 
 				//Add reaction to message to confirm targetUser has been set
 				event.getMessage().addReaction("\uD83C\uDD97").queue();
+			} else {
+				//Invalid parameters in message, add reaction to show action failed
+				event.getMessage().addReaction("❌").queue();
 			}
 		}
 
@@ -223,6 +231,34 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("speak")) sendMarkovSentence(channel, content, true);
 
 		if (command.equals("word") && content.equals("")) channel.sendMessage(markovCore.getRandomWord()).queue();
+	}
+
+	/**
+	 * Sets the nickname for the bot on the given guild to the given nickname, quoting the provided reason.
+	 * @param guild Specified guild to set the bot's nickname on
+	 * @param nickname String to set the bot's nickname to (cannot exceed {@value NICKNAME_MAX_LENGTH} characters).
+	 *                 Providing <code>null</code> will set to default nickname ({@value DEFAULT_NICKNAME})
+	 * @param reason Specified reason to quote in the audit log
+	 * @return if the nickname was successfully changed
+	 */
+	private boolean setBotNickname(Guild guild, String nickname, String reason) {
+		if (guild == null) return false;
+
+		//If params are null, set to their defaults
+		if (nickname == null) nickname = DEFAULT_NICKNAME;
+		if (reason == null) reason = "Automatic nickname change";
+
+		if (nickname.length() > NICKNAME_MAX_LENGTH) { //Ensure nickname cannot exceed max length
+			throw new IllegalArgumentException("Specified nickname is too long (max 32 chars) " + nickname);
+		}
+
+		//Ensure the bot is part of the specified guild
+		if (guild.getSelfMember() == null) return false;
+		//Ensure bot has permissions to change nickname
+		if (!guild.getSelfMember().hasPermission(Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE)) return false;
+
+		guild.getController().setNickname(guild.getSelfMember(), nickname).reason(reason).queue();
+		return true;
 	}
 
 	/**
