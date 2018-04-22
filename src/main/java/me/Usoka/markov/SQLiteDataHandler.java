@@ -17,7 +17,7 @@ public class SQLiteDataHandler implements DataHandler {
 	 */
 	public SQLiteDataHandler(@NotNull String databaseDirectory) throws SQLException{
 		if (databaseDirectory.equals("")) throw new IllegalArgumentException("Database directory cannot be empty String");
-		sqlDatabase = DriverManager.getConnection(databaseDirectory);
+		sqlDatabase = DriverManager.getConnection("jdbc:sqlite:"+ databaseDirectory);
 	}
 
 	@Override
