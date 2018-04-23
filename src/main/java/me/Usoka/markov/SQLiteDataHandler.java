@@ -3,10 +3,7 @@ package me.Usoka.markov;
 import com.sun.istack.internal.NotNull;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SQLiteDataHandler implements DataHandler {
 	private Connection sqlDatabase;
@@ -69,11 +66,11 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLexiconAll() {
-		if (sqlDatabase == null) return new ArrayList<>();
+	public Set<String> getLexiconAll() {
+		if (sqlDatabase == null) return new HashSet<>();
 		String query = "SELECT DISTINCT word FROM user_lexicons";
 
-		List<String> lexicon = new ArrayList<>();
+		Set<String> lexicon = new HashSet<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) lexicon.add(rs.getString(1));
@@ -84,11 +81,11 @@ public class SQLiteDataHandler implements DataHandler {
 	}
 
 	@Override
-	public List<String> getLexiconFor(@NotNull User user) {
-		if (sqlDatabase == null) return new ArrayList<>();
+	public Set<String> getLexiconFor(@NotNull User user) {
+		if (sqlDatabase == null) return new HashSet<>();
 		String query = "SELECT word FROM user_lexicons WHERE userID = ?";
 
-		List<String> lexicon = new ArrayList<>();
+		Set<String> lexicon = new HashSet<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
 			prepState.setLong(1, user.getIdLong());
 			ResultSet rs = prepState.executeQuery();
@@ -97,6 +94,39 @@ public class SQLiteDataHandler implements DataHandler {
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 
 		return lexicon;
+	}
+
+	@Override
+	public List<String> getAllWordsAll() {
+		String query = "SELECT word, frequency FROM user_lexicons";
+
+		List<String> allWords = new ArrayList<>();
+		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
+			ResultSet rs = prepState.executeQuery();
+			while (rs.next()) for (int i = 0; i < rs.getInt(2); i++) {
+				allWords.add(rs.getString(1));
+			}
+			rs.close();
+		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+
+		return allWords;
+	}
+
+	@Override
+	public List<String> getAllWordsFor(User user) {
+		String blankQuery = "SELECT word, frequency FROM user_lexicons WHERE userID = ?";
+
+		List<String> allWords = new ArrayList<>();
+		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
+			prepState.setLong(1, user.getIdLong());
+			ResultSet rs = prepState.executeQuery();
+			while (rs.next()) for (int i = 0; i < rs.getInt(2); i++) {
+				allWords.add(rs.getString(1));
+			}
+			rs.close();
+		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+
+		return allWords;
 	}
 
 	@Override
