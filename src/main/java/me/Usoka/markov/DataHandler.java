@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface DataHandler {
 
@@ -37,17 +38,32 @@ public interface DataHandler {
 	int getWordFrequencyFor(@NotNull String word, @NotNull User user);
 
 	/**
-	 * Gets the complete list of unique words said by all users
-	 * @return <code>List</code> containing all words
+	 * Gets a complete set of unique words said by all users
+	 * @return <code>Set</code> containing all unique words
 	 */
-	List<String> getLexiconAll();
+	Set<String> getLexiconAll();
 
 	/**
-	 * Gets the complete list of unique words said for a specific user
+	 * Gets a complete set of unique words said for a specific user
 	 * @param user specified user to get the lexicon for
+	 * @return <code>Set</code> containing all unique words from that user
+	 */
+	Set<String> getLexiconFor(@NotNull User user);
+
+	/**
+	 * Gets a complete list of all words said by all users.
+	 * Each word is repeated in the list the number of times it's been said
+	 * @return <code>List</code> containing all words
+	 */
+	List<String> getAllWordsAll();
+
+	/**
+	 * Gets a complete list of all words said by a specified user.
+	 * Each word is repeated in the list the number of times it's been said
+	 * @param user specified user to get the list for
 	 * @return <code>List</code> containing all words from that user
 	 */
-	List<String> getLexiconFor(@NotNull User user);
+	List<String> getAllWordsFor(@NotNull User user);
 
 	/**
 	 * Gets the words that are linked to from a given one, for all

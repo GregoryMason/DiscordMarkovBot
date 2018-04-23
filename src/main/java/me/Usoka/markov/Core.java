@@ -10,7 +10,16 @@ public class Core {
 	private DataHandler markovData;
 
 	private User currentUser;
-	private List<String> lexicon;
+
+	/**
+	 * Set of all unique words in the lexicon, each word contained once
+	 */
+	private Set<String> lexicon;
+
+	/**
+	 * Set of all words in the lexicon. Each word is repeated as many times as it appears in source
+	 */
+	private List<String> allWords;
 
 	/**
 	 * Create an instance of <code>Core</code> without a specific user to target from initialisation
@@ -53,8 +62,13 @@ public class Core {
 	 * Builds the lexicon (collection of all unique words) for the current target user.
 	 */
 	private void getLexiconFromData() {
-		if (currentUser == null) lexicon = markovData.getLexiconAll();
-		else lexicon = markovData.getLexiconFor(currentUser);
+		if (currentUser == null) {
+			lexicon = markovData.getLexiconAll();
+			allWords = markovData.getAllWordsAll();
+		} else {
+			lexicon = markovData.getLexiconFor(currentUser);
+			allWords = markovData.getAllWordsFor(currentUser);
+		}
 	}
 
 	/**
@@ -66,11 +80,7 @@ public class Core {
 	 * Get the size of the lexicon for the current target user
 	 * @return size of lexicon for the current target user
 	 */
-	public int getLexiconSize() {
-		//TODO confirm, is this just the same as lexicon.size()?
-		if (currentUser == null) return getAllLexiconSize();
-		return markovData.getLexiconSizeFor(currentUser);
-	}
+	public int getLexiconSize() { return lexicon.size(); }
 
 	/**
 	 * Gets the size of the lexicon for a specified user
@@ -156,9 +166,8 @@ public class Core {
 	 * @return the chosen word
 	 */
 	public String getRandomWord() {
-		if (lexicon == null || lexicon.size() == 0) return "";
-		//TODO adjust for different frequencies of words
-		return lexicon.get((int)(Math.random() * lexicon.size()));
+		if (allWords == null || allWords.size() == 0) return "";
+		return allWords.get((int)(Math.random() * allWords.size()));
 	}
 
 	/**
