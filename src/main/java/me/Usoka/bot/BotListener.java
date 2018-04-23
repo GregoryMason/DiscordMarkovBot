@@ -230,7 +230,10 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("quote")) sendMarkovSentence(channel, content, false);
 		if (command.equals("speak")) sendMarkovSentence(channel, content, true);
 
-		if (command.equals("word") && content.equals("")) channel.sendMessage(markovCore.getRandomWord()).queue();
+		if (command.equals("word") && content.equals("")) {
+			String word = markovCore.getRandomWord();
+			channel.sendMessage(word.matches("^(\\s+)?$")? "No source data for current user" : word).queue();
+		}
 	}
 
 	/**
