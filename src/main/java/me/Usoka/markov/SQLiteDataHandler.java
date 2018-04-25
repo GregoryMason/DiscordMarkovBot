@@ -102,11 +102,7 @@ public class SQLiteDataHandler implements DataHandler {
 
 		List<String> allWords = new ArrayList<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
-			ResultSet rs = prepState.executeQuery();
-			while (rs.next()) for (int i = 0; i < rs.getInt(2); i++) {
-				allWords.add(rs.getString(1));
-			}
-			rs.close();
+			allWords = getListFromResultSet(prepState.executeQuery());
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 
 		return allWords;
@@ -119,14 +115,31 @@ public class SQLiteDataHandler implements DataHandler {
 		List<String> allWords = new ArrayList<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setLong(1, user.getIdLong());
-			ResultSet rs = prepState.executeQuery();
-			while (rs.next()) for (int i = 0; i < rs.getInt(2); i++) {
-				allWords.add(rs.getString(1));
-			}
-			rs.close();
+			allWords = getListFromResultSet(prepState.executeQuery());
 		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
 
 		return allWords;
+	}
+
+	/**
+	 * Gets a <code>String</code> {@link List} from a given <code>ResultSet</code>. Adds each given string to
+	 * the list as many times as is specified.
+	 * @param rs The result set which the list should be built from. <br/>
+	 *           <code>ResultSet</code> should be in the format:<ul>
+	 *           <li>Column 1: <code>String</code> to be added to list</li>
+	 *           <li>Column 2: <code>int</code> representing how many times it should be added</li></ul>
+	 *           Any other columns will be ignored.
+	 * @return <code>List</code> built from the result set
+	 * @throws SQLException if an exception is thrown by a method called on the result set
+	 */
+	private List<String> getListFromResultSet(@NotNull ResultSet rs) throws SQLException {
+		List<String> returnList = new ArrayList<>();
+
+		while (rs.next()) for (int i = 0; i < rs.getInt(2); i++) {
+			returnList.add(rs.getString(1));
+		}
+		rs.close();
+		return returnList;
 	}
 
 	@Override
