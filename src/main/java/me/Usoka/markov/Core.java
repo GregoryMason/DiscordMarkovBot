@@ -254,11 +254,17 @@ public class Core {
 	}
 
 	/**
-	 * Ensures there is a matching user in the source. Otherwise updates source to match provided user
+	 * Ensures that a user in the source with matching ID is up to date
 	 * @param user user that should be matched in the source
 	 */
 	public void ensureUser(@NotNull User user) {
-		//TODO Call relevant method in SourceHandler when created
+		try {
+			//Check the user already exists (only want users that have matched data)
+			if (markovSource.containsUserByID(user.getId())) {
+				//Update the user by re-saving them
+				markovSource.saveUser(user);
+			}
+		} catch (Exception ignored) {}
 	}
 
 	/**
