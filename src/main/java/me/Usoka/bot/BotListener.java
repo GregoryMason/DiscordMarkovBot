@@ -302,7 +302,7 @@ public class BotListener extends ListenerAdapter {
 	 * {@link me.Usoka.markov.User} for the libraries used with the markov core
 	 */
 	private me.Usoka.markov.User convertUserClass(User u) {
-		return new me.Usoka.markov.User(u.getIdLong(), u.getName(), u.getDiscriminator());
+		return new me.Usoka.markov.User(u.getIdLong(), u.getName());
 	}
 
 	/**

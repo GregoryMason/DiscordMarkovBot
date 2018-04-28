@@ -142,14 +142,13 @@ public class SQLiteSourceHandler implements SourceHandler {
 	@Override
 	public boolean saveUser(User user) {
 		if (user == null) return false;
-		String blankQuery = "REPLACE INTO users (userID, username, discriminator) VALUES (?,?,?)";
+		String blankQuery = "REPLACE INTO users (userID, username) VALUES (?,?)";
 
 		try {
 			PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuery);
 
 			prepStatement.setLong(1, user.getIdLong());
 			prepStatement.setString(2, user.getName());
-			prepStatement.setInt(3, Integer.parseInt(user.getDiscriminator()));
 
 			prepStatement.executeUpdate();
 		} catch (SQLException e) {
@@ -184,12 +183,12 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 	@Override
 	public int countMessagesFrom(@NotNull User user) throws SQLException{
-		String blankQuerry = "SELECT count(*) FROM users " +
+		String blankQuery = "SELECT count(*) FROM users " +
 				"LEFT JOIN user_messages ON users.userID = user_messages.userID " +
 				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +
 				"WHERE users.userID = ?";
 
-		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuerry)) {
+		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuery)) {
 			prepStatement.setLong(1, user.getIdLong());
 			return prepStatement.executeQuery().getInt(1);
 		} catch (SQLException e) { System.out.println("SQL Error: "+ e); }
