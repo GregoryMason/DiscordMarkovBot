@@ -383,7 +383,9 @@ public class BotListener extends ListenerAdapter {
 
 		//Go through all of the text channels
 		for (TextChannel channel : progressMessage.getGuild().getTextChannels()) {
-			fieldsAfter.remove(0);
+			//Skip channels that don't have any more recent messages than specified earliest message
+			if (channel.getLatestMessageIdLong() <= earliestMessageID) continue;
+			if (!fieldsAfter.isEmpty()) fieldsAfter.remove(0);
 
 			//Get the messages
 			List<me.Usoka.markov.Message> channelMessages = getChannelMessages(channel, progressMessage, embedBuilder, fieldsAfter, earliestMessageID);
@@ -429,8 +431,14 @@ public class BotListener extends ListenerAdapter {
 		embedBuilder.setTitle(guild.getName(),"https://i.imgur.com/NqbaLqs.mp4").setThumbnail(guild.getIconUrl());
 		embedBuilder.setFooter("Started", null).setTimestamp(java.time.OffsetDateTime.now());
 
-		//Create embed fields based on all the text channels in the guild FIXME make it not add ignored channels and channels it can't access
-		guild.getTextChannels().forEach((channel) -> embedBuilder.addField(channel.getName() +" [Queued]","Messages: 0",false));
+		//Create embed fields based on all the text channels in the guild
+		for (TextChannel channel : guild.getTextChannels()) {
+			//Skip channels that don't have any more recent messages than specified earliest message
+			if (channel.getLatestMessageIdLong() <= earliestMessageID) continue;
+			//TODO Skip channels that the bot does not have access to
+
+			embedBuilder.addField(channel.getName() +" [Queued]","Messages: 0",false);
+		}
 
 		//Queue the message used to log progress, and when it's successfully sent call method for actually retrieving history
 		logChannel.sendMessage(messageContent).embed(embedBuilder.build()).queue((message) -> saveChannelHistory(message, earliestMessageID));
