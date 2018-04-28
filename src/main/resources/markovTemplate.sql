@@ -2,7 +2,7 @@ PRAGMA foreign_keys=OFF;
 
 BEGIN TRANSACTION;
 
-CREATE TABLE users (userID INTEGER PRIMARY KEY, username text NOT NULL, discriminator INTEGER NOT NULL);
+CREATE TABLE users (userID INTEGER PRIMARY KEY, username text NOT NULL);
 
 CREATE TABLE links (linkID INTEGER PRIMARY KEY, startWord text NOT NULL, endWord text);
 

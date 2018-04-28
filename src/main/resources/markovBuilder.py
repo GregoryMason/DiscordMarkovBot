@@ -119,7 +119,7 @@ def main():
 	for user in sourceDatabase.cursor().execute("SELECT * FROM users"):
 		targetUsers.append(user[0])
 		#Ensure all users are in the database, and it's all up to date
-		markovDatabase.cursor().execute("REPLACE INTO users (userID, username, discriminator) VALUES (?,?,?)", user)
+		markovDatabase.cursor().execute("REPLACE INTO users (userID, username) VALUES (?,?)", user)
 
 	#Commit all the queries updating the database
 	markovDatabase.commit()
