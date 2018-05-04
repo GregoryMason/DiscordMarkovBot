@@ -1,6 +1,7 @@
 package me.Usoka.markov;
 
 import com.sun.istack.internal.NotNull;
+import me.Usoka.markov.exceptions.InvalidUserException;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -165,9 +166,10 @@ public class Core {
 	/**
 	 * Gets a random word from the current target user's lexicon
 	 * @return the chosen word
+	 * @throws InvalidUserException if current user has no data
 	 */
-	public String getRandomWord() {
-		if (allWords == null || allWords.size() == 0) return "";
+	public String getRandomWord() throws InvalidUserException {
+		if (allWords == null || allWords.size() == 0) throw new InvalidUserException("No data for current user");
 		return allWords.get((int)(Math.random() * allWords.size()));
 	}
 
@@ -176,13 +178,14 @@ public class Core {
 	 * <br/> Note: Has a 1 in 50 chance of picking a completely random word instead
 	 * @param precedingWord the word which this one will follow
 	 * @return the chosen next word
+	 * @throws InvalidUserException if current user has no data
 	 */
-	private String getNextWord(@NotNull String precedingWord) {
+	private String getNextWord(@NotNull String precedingWord) throws InvalidUserException {
 		String returnWord = getRandomWord();
 
 		//Get all the words which are linked in the markov data from precedingWord
 		List<String> linkedWords = getMarkovLinksAsList(precedingWord);
-		if (linkedWords.size() == 0) return "";
+		if (linkedWords.size() == 0) return ""; //TODO throw exception instead
 
 		//If it's not going to remain a random word, return a random one from the links
 		if ((int)(Math.random() * 50) != 1) return linkedWords.get((int)(Math.random() * linkedWords.size()));
@@ -194,8 +197,9 @@ public class Core {
 	 * Build a sentence from a provided word using the markov data of the current target user
 	 * @param startWord specified word to start building the sentence from
 	 * @return the completed sentence
+	 * @throws InvalidUserException if current user has no data
 	 */
-	private String buildSentence(String startWord) {
+	private String buildSentence(String startWord) throws InvalidUserException {
 		if (startWord == null) startWord = getRandomWord();
 
 		StringBuilder sentence = new StringBuilder();
@@ -227,19 +231,24 @@ public class Core {
 	/**
 	 * Get a markov chain sentence starting with a random word
 	 * @return the sentence generated
+	 * @throws InvalidUserException if the current user has no data
 	 */
-	public String getSentence() { return buildSentence(getRandomWord()); }
+	public String getSentence() throws InvalidUserException { return buildSentence(getRandomWord()); }
 
 	/**
 	 * Get a markov chain sentence starting with a specified word
 	 * @param startWord word to start sentence with. If <code>null</code>,
 	 *                  defaults to a random word
 	 * @return the sentence generated from the word
+	 * @throws InvalidUserException if the current user has no data, or if
+	 * 								provided word has not been said by them
 	 */
-	public String getSentence(String startWord) {
+	public String getSentence(String startWord) throws InvalidUserException {
 		if (startWord == null) startWord = getRandomWord();
-		//Ensure the user has said that word before
-		if (!lexicon.contains(startWord)) return "\""+ startWord +"\" not found in lexicon";
+
+		//Ensure the user has said that word before TODO throw a more relevant exception
+		if (!lexicon.contains(startWord)) throw new InvalidUserException("\""+ startWord +"\" not found in lexicon");
+
 		return buildSentence(startWord);
 	}
 
