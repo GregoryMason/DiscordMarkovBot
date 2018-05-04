@@ -2,6 +2,7 @@ package me.Usoka.markov;
 
 import com.sun.istack.internal.NotNull;
 import me.Usoka.markov.exceptions.InvalidUserException;
+import me.Usoka.markov.exceptions.IllegalWordException;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -179,13 +180,14 @@ public class Core {
 	 * @param precedingWord the word which this one will follow
 	 * @return the chosen next word
 	 * @throws InvalidUserException if current user has no data
+	 * @throws IllegalWordException if the provided word doesn't have any linked words
 	 */
-	private String getNextWord(@NotNull String precedingWord) throws InvalidUserException {
+	private String getNextWord(@NotNull String precedingWord) throws InvalidUserException, IllegalWordException {
 		String returnWord = getRandomWord();
 
 		//Get all the words which are linked in the markov data from precedingWord
 		List<String> linkedWords = getMarkovLinksAsList(precedingWord);
-		if (linkedWords.size() == 0) return ""; //TODO throw exception instead
+		if (linkedWords.size() == 0) throw new IllegalWordException("No linked words found");
 
 		//If it's not going to remain a random word, return a random one from the links
 		if ((int)(Math.random() * 50) != 1) return linkedWords.get((int)(Math.random() * linkedWords.size()));
@@ -211,8 +213,11 @@ public class Core {
 		int repeatCount = 0;
 
 		while (sentence.length() < 500) { //Make sure sentences can't become too long
-			nextWord = getNextWord(precedingWord);
-			if (nextWord.equals("")) break;
+			try {
+				nextWord = getNextWord(precedingWord);
+			} catch (IllegalWordException e) {
+				break;
+			}
 
 			sentence.append(nextWord).append(" ");
 
@@ -242,12 +247,14 @@ public class Core {
 	 * @return the sentence generated from the word
 	 * @throws InvalidUserException if the current user has no data, or if
 	 * 								provided word has not been said by them
+	 * @throws IllegalWordException if the provided word does not exist in
+	 * 								the current user's lexicon
 	 */
-	public String getSentence(String startWord) throws InvalidUserException {
+	public String getSentence(String startWord) throws InvalidUserException, IllegalWordException {
 		if (startWord == null) startWord = getRandomWord();
 
-		//Ensure the user has said that word before TODO throw a more relevant exception
-		if (!lexicon.contains(startWord)) throw new InvalidUserException("\""+ startWord +"\" not found in lexicon");
+		//Ensure the user has said that word before
+		if (!lexicon.contains(startWord)) throw new IllegalWordException("\""+ startWord +"\" not in lexicon");
 
 		return buildSentence(startWord);
 	}
