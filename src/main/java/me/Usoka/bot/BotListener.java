@@ -180,7 +180,7 @@ public class BotListener extends ListenerAdapter {
 				User targetUser = event.getJDA().getUserById(content.replaceFirst(MENTION_REGEX, "$1"));
 				int messageCount = 0;
 
-				if (targetUser != null) try { messageCount = markovCore.getSourceCountOf(convertUserClass(targetUser)); } catch (Exception ignored) {}
+				if (targetUser != null) messageCount = markovCore.getSourceCountOf(convertUserClass(targetUser));
 				if (messageCount <= 0) event.getChannel().sendMessage("No data found for "+ content).queue();
 				else event.getChannel().sendMessage(messageCount +" messages in source from "+ content).queue();
 			}

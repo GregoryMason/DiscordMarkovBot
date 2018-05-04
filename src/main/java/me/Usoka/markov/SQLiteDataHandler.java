@@ -24,7 +24,9 @@ public class SQLiteDataHandler implements DataHandler {
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
 			return prepState.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getLexiconSizeAll: "+ e);
+		}
 		return 0;
 	}
 
@@ -36,7 +38,9 @@ public class SQLiteDataHandler implements DataHandler {
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setLong(1, user.getIdLong());
 			return prepState.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getLexiconSizeFor: "+ e);
+		}
 		return 0;
 	}
 
@@ -48,7 +52,9 @@ public class SQLiteDataHandler implements DataHandler {
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setString(1, word);
 			return prepState.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getWordFrequencyAll: "+ e);
+		}
 		return 0;
 	}
 
@@ -61,7 +67,9 @@ public class SQLiteDataHandler implements DataHandler {
 			prepState.setLong(1, user.getIdLong());
 			prepState.setString(2, word);
 			return prepState.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getWordFrequencyFor: "+ e);
+		}
 		return 0;
 	}
 
@@ -75,7 +83,9 @@ public class SQLiteDataHandler implements DataHandler {
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) lexicon.add(rs.getString(1));
 			rs.close();
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getLexiconAll: "+ e);
+		}
 
 		return lexicon;
 	}
@@ -91,7 +101,9 @@ public class SQLiteDataHandler implements DataHandler {
 			ResultSet rs = prepState.executeQuery();
 			while (rs.next()) lexicon.add(rs.getString(1));
 			rs.close();
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getLexiconFor: "+ e);
+		}
 
 		return lexicon;
 	}
@@ -103,7 +115,9 @@ public class SQLiteDataHandler implements DataHandler {
 		List<String> allWords = new ArrayList<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
 			allWords = getListFromResultSet(prepState.executeQuery());
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getAllWordsAll: "+ e);
+		}
 
 		return allWords;
 	}
@@ -116,7 +130,9 @@ public class SQLiteDataHandler implements DataHandler {
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setLong(1, user.getIdLong());
 			allWords = getListFromResultSet(prepState.executeQuery());
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getAllWordsFor: "+ e);
+		}
 
 		return allWords;
 	}
@@ -157,7 +173,9 @@ public class SQLiteDataHandler implements DataHandler {
 			while (rs.next()) {
 				markovLinks.put(rs.getString(1), rs.getInt(2));
 			}
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getLinksAll: "+ e);
+		}
 
 		return markovLinks;
 	}
@@ -179,7 +197,9 @@ public class SQLiteDataHandler implements DataHandler {
 			while (rs.next()) {
 				markovLinks.put(rs.getString(1), rs.getInt(2));
 			}
-		} catch (SQLException e) { System.out.println("Failed to read from database: "+ e); }
+		} catch (SQLException e) {
+			System.err.println("SQLException in getLinksFor: "+ e);
+		}
 
 		return markovLinks;
 	}
