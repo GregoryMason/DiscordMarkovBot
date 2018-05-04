@@ -2,6 +2,7 @@ package me.Usoka.markov;
 
 import com.sun.istack.internal.NotNull;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 			messagesPrepState.executeUpdate();
 			linkPrepState.executeUpdate();
 		} catch (SQLException e) {
-			System.out.println("SQL Error: "+ e);
+			System.err.println("SQLException in saveMessage: "+ e);
 			return false;
 		}
 
@@ -55,7 +56,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 			prepStatement.setString(2, message.getContentCleaned());
 			prepStatement.executeUpdate();
 		} catch (SQLException e) {
-			System.out.println("SQL Error: "+ e);
+			System.err.println("SQLException in updateMessage: "+ e);
 			return false;
 		}
 
@@ -90,7 +91,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 			sqlDatabase.commit();
 			sqlDatabase.setAutoCommit(true);
 		} catch (SQLException e) {
-			System.out.println("SQL Error: "+ e);
+			System.err.println("SQLException in updateMessages: "+ e);
 			return false;
 		}
 
@@ -119,7 +120,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 			sqlDatabase.commit();
 			sqlDatabase.setAutoCommit(true);
 		} catch (SQLException e) {
-			System.out.println("SQL Error: "+ e);
+			System.err.println("SQLException in deleteMessage: "+ e);
 			return false;
 		}
 
@@ -127,7 +128,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 	}
 
 	@Override
-	public boolean containsMessageID(String messageID) throws SQLException {
+	public boolean containsMessageID(String messageID) throws IOException {
 		if (messageID == null) return false;
 		String blankQuery = "SELECT EXISTS ( SELECT * FROM messages WHERE messageID = ?)";
 
@@ -135,8 +136,9 @@ public class SQLiteSourceHandler implements SourceHandler {
 			prepStatement.setLong(1, Long.parseLong(messageID));
 
 			return prepStatement.executeQuery().getBoolean(1);
-		} catch (SQLException e) {System.out.println("SQL Error: "+ e);}
-		throw new SQLException("failed to read from database");
+		} catch (SQLException e) {
+			throw new IOException("Database read failed", e);
+		}
 	}
 
 	@Override
@@ -152,7 +154,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 
 			prepStatement.executeUpdate();
 		} catch (SQLException e) {
-			System.out.println("SQL Error: "+ e);
+			System.err.println("SQLException in saveUser: "+ e);
 			return false;
 		}
 
@@ -160,7 +162,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 	}
 
 	@Override
-	public boolean containsUserByID(String userID) throws SQLException {
+	public boolean containsUserByID(String userID) throws IOException {
 		if (userID == null) return false;
 		String blankQuery = "SELECT EXISTS ( SELECT * FROM users WHERE userID = ?)";
 
@@ -168,21 +170,23 @@ public class SQLiteSourceHandler implements SourceHandler {
 			prepStatement.setLong(1, Long.parseLong(userID));
 
 			return prepStatement.executeQuery().getBoolean(1);
-		} catch (SQLException e) {System.out.println("SQL Error: "+ e);}
-		throw new SQLException("failed to read from database");
+		} catch (SQLException e) {
+			throw new IOException("Database read failed", e);
+		}
 	}
 
 	@Override
-	public String getMostRecentMessageID() throws SQLException {
+	public String getMostRecentMessageID() throws IOException {
 		String query = "SELECT max(messageID) FROM messages";
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(query)) {
 			return prepStatement.executeQuery().getString(1);
-		} catch (SQLException e) {System.out.println("SQL Error: "+ e);}
-		throw new SQLException("failed to read from database");
+		} catch (SQLException e) {
+			throw new IOException("Database read failed", e);
+		}
 	}
 
 	@Override
-	public int countMessagesFrom(@NotNull User user) throws SQLException{
+	public int countMessagesFrom(@NotNull User user) throws IOException{
 		String blankQuery = "SELECT count(*) FROM users " +
 				"LEFT JOIN user_messages ON users.userID = user_messages.userID " +
 				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +
@@ -191,8 +195,8 @@ public class SQLiteSourceHandler implements SourceHandler {
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(blankQuery)) {
 			prepStatement.setLong(1, user.getIdLong());
 			return prepStatement.executeQuery().getInt(1);
-		} catch (SQLException e) { System.out.println("SQL Error: "+ e); }
-
-		throw new SQLException("Failed to read from database");
+		} catch (SQLException e) {
+			throw new IOException("Database read failed", e);
+		}
 	}
 }

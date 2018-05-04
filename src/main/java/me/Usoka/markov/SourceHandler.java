@@ -2,6 +2,7 @@ package me.Usoka.markov;
 
 import com.sun.istack.internal.NotNull;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface SourceHandler {
@@ -40,9 +41,9 @@ public interface SourceHandler {
 	 * Identify if a message, by given ID, already existing in the source
 	 * @param messageID ID (as String) of message to check for
 	 * @return if the message exist
-	 * @throws Exception if there is an error reading from the source
+	 * @throws IOException if there is an error reading from the source
 	 */
-	boolean containsMessageID(String messageID) throws Exception;
+	boolean containsMessageID(String messageID) throws IOException;
 
 	/**
 	 * Saves a specified user to the source data.
@@ -56,22 +57,22 @@ public interface SourceHandler {
 	 * Checks if a user, by given ID, exists in the source data
 	 * @param userID user ID (as String) to check for
 	 * @return if the source data contains a user with matching ID
-	 * @throws Exception if there is an error reading from the source
+	 * @throws IOException if there is an error reading from the source
 	 */
-	boolean containsUserByID(String userID) throws Exception;
+	boolean containsUserByID(String userID) throws IOException;
 
 	/**
 	 * Gets the String ID of the most recent message in the source data
 	 * @return the ID of the most recent message (as String)
-	 * @throws Exception if there is an error reading from the source
+	 * @throws IOException if there is an error reading from the source
 	 */
-	String getMostRecentMessageID() throws Exception;
+	String getMostRecentMessageID() throws IOException;
 
 	/**
 	 * Counts the number of messages in the source data for a specified user
 	 * @param user specified user to count the messages for
 	 * @return number of messages which the user has sent
-	 * @throws Exception if there is an error reading from the source
+	 * @throws IOException if there is an error reading from the source
 	 */
-	int countMessagesFrom(@NotNull User user) throws Exception;
+	int countMessagesFrom(@NotNull User user) throws IOException;
 }

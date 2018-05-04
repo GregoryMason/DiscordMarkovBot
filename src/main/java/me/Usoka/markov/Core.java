@@ -2,6 +2,7 @@ package me.Usoka.markov;
 
 import com.sun.istack.internal.NotNull;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -264,7 +265,7 @@ public class Core {
 				//Update the user by re-saving them
 				markovSource.saveUser(user);
 			}
-		} catch (Exception ignored) {}
+		} catch (IOException ignored) {}
 	}
 
 	/**
@@ -289,11 +290,11 @@ public class Core {
 			if (!markovSource.containsUserByID(message.getAuthor().getId())) {
 				//Add the user to the source
 				if (!markovSource.saveUser(message.getAuthor())) {
-					throw new Exception("Adding user ("+ message.getAuthor().getId() +"|"+ message.getAuthor().getName() +") failed");
+					throw new IOException("Adding user ("+ message.getAuthor().getId() +"|"+ message.getAuthor().getName() +") failed");
 				}
 			}
-		} catch (Exception e) {
-			System.out.println("Failed to save message "+ message.getId() +": "+ e);
+		} catch (IOException e) {
+			System.err.println("Failed to save message "+ message.getId() +": "+ e);
 			return;
 		}
 
@@ -312,8 +313,8 @@ public class Core {
 				saveMaterial(message);
 				return;
 			}
-		} catch (Exception e) {
-			System.out.println("Update Message Error: "+ e);
+		} catch (IOException e) {
+			System.err.println("Failed to update message "+ message.getId() +": "+ e);
 			return;
 		}
 
@@ -348,7 +349,7 @@ public class Core {
 					//If they aren't, add them
 					if (!markovSource.containsUserByID(message.getAuthor().getId())) {
 						if (!markovSource.saveUser(message.getAuthor())) {
-							throw new Exception("Adding user ("+ message.getAuthor().getId() +
+							throw new IOException("Adding user ("+ message.getAuthor().getId() +
 									"|"+ message.getAuthor().getName() +") failed");
 						}
 					}
@@ -356,7 +357,7 @@ public class Core {
 					//Add user to the Set tracking users in this bulk update
 					users.add(message.getAuthor().getId());
 				}
-			} catch (Exception e) { System.out.println("Failed to save message "+ message.getId() +": "+ e); }
+			} catch (IOException e) { System.out.println("Failed to save message "+ message.getId() +": "+ e); }
 			numSaved++;
 		}
 
@@ -379,9 +380,11 @@ public class Core {
 	 * Counts the number of messages in the file used for Markov source
 	 * @return number of lines/messages
 	 */
-	public int getSourceCountOf(@NotNull User targetUser) throws Exception{
-		if (markovSource == null) throw new Exception("Markov Source not configured");
-
-		return markovSource.countMessagesFrom(targetUser);
+	public int getSourceCountOf(@NotNull User targetUser) {
+		try {
+			return markovSource.countMessagesFrom(targetUser);
+		} catch (IOException e) {
+			return 0;
+		}
 	}
 }
