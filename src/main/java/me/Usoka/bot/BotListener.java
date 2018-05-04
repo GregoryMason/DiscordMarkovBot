@@ -2,6 +2,7 @@ package me.Usoka.bot;
 
 import me.Usoka.markov.Core;
 
+import me.Usoka.markov.exceptions.InvalidUserException;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
@@ -231,8 +232,12 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("speak")) sendMarkovSentence(channel, content, true);
 
 		if (command.equals("word") && content.equals("")) {
-			String word = markovCore.getRandomWord();
-			channel.sendMessage(word.matches("^(\\s+)?$")? "No source data for current user" : word).queue();
+			try {
+				String word = markovCore.getRandomWord();
+				channel.sendMessage(word.matches("^(\\s+)?$")? "No source data for current user" : word).queue();
+			} catch (InvalidUserException e) {
+				channel.sendMessage("No source data for current user").queue();
+			}
 		}
 	}
 
@@ -273,27 +278,33 @@ public class BotListener extends ListenerAdapter {
 	private void sendMarkovSentence(MessageChannel channel, String startingWord, boolean isTTS) {
 		channel.sendTyping().queue();
 
-		//Get the constructed sentence
-		String sentence = (startingWord.equals(""))? markovCore.getSentence() : markovCore.getSentence(startingWord);
+		try {
+			//Get the constructed sentence
+			String sentence = (startingWord.equals("")) ? markovCore.getSentence() : markovCore.getSentence(startingWord);
 
-		//Escape user mentions in constructed sentences
-		Matcher mentionMatcher = MENTION_PATTERN.matcher(sentence);
-		while (mentionMatcher.find()) {
-			//Extract just the user ID from the mention
-			String mentionedUserID = mentionMatcher.group().replaceFirst(MENTION_REGEX, "$1");
-			//Use the ID to get the user that has been mentioned
-			User mentionedUser = channel.getJDA().getUserById(mentionedUserID);
-			if (mentionedUser == null) continue; //api can't find the user, so mention won't ping anyone
+			//Escape user mentions in constructed sentences
+			Matcher mentionMatcher = MENTION_PATTERN.matcher(sentence);
+			while (mentionMatcher.find()) {
+				//Extract just the user ID from the mention
+				String mentionedUserID = mentionMatcher.group().replaceFirst(MENTION_REGEX, "$1");
+				//Use the ID to get the user that has been mentioned
+				User mentionedUser = channel.getJDA().getUserById(mentionedUserID);
+				if (mentionedUser == null) continue; //api can't find the user, so mention won't ping anyone
 
-			//Make the escaped form of the mention
-			String escapedMention = "@"+ mentionedUser.getName() +"#"+ mentionedUser.getDiscriminator();
+				//Make the escaped form of the mention
+				String escapedMention = "@"+ mentionedUser.getName() +"#"+ mentionedUser.getDiscriminator();
 
-			//Replace occurrence of mention to the non-mention form, and make it bold
-			sentence = sentence.replaceFirst(mentionMatcher.group(), "**"+ escapedMention +"**");
+				//Replace occurrence of mention to the non-mention form, and make it bold
+				sentence = sentence.replaceFirst(mentionMatcher.group(), "**"+ escapedMention +"**");
+			}
+
+			//Send the message to the channel (or specify that it couldn't build the sentence for current user)
+			channel.sendMessage(sentence).tts(isTTS).queue();
+
+		} catch (InvalidUserException e) {
+			//Send default message for invalid user (without Text To Speech)
+			channel.sendMessage("No source data for current user").queue();
 		}
-
-		//Send the message to the channel (or specify that it couldn't build the sentence for current user)
-		channel.sendMessage((sentence.matches("^(\\s+)?$"))? "No source data for current user" : sentence).tts(isTTS).queue();
 	}
 
 
