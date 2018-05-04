@@ -255,12 +255,10 @@ public class Core {
 	/**
 	 * Get the ID of the most recent message
 	 * @return message ID as String
+	 * @throws IOException if there's an error reading the ID from the database
 	 */
-	public String getMostRecentID() {
-		try {
-			return markovSource.getMostRecentMessageID();
-		} catch (Exception e) { System.out.println("Source read error: "+ e); }
-		return "";
+	public String getMostRecentID() throws IOException {
+		return markovSource.getMostRecentMessageID();
 	}
 
 	/**

@@ -15,6 +15,7 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import org.apache.commons.collections4.ListUtils;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -121,8 +122,12 @@ public class BotListener extends ListenerAdapter {
 		}
 
 		//Fetch all message history from between the last time bot was started and now
-		getAllChannelHistory(homeGuild, api.getTextChannelById(botChannelID),
-				"Starting bot", Long.parseUnsignedLong(markovCore.getMostRecentID()));
+		try {
+			getAllChannelHistory(homeGuild, api.getTextChannelById(botChannelID),
+					"Starting bot", Long.parseUnsignedLong(markovCore.getMostRecentID()));
+		} catch (IOException e) {
+			System.err.println("Could not retrieve message history: "+ e);
+		}
 
 		System.out.println("Resolving "+ queuedEvents.size() +" queued events");
 		//Resolve all queued events from when bot was starting up
