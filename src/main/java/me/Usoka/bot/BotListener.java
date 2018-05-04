@@ -2,6 +2,7 @@ package me.Usoka.bot;
 
 import me.Usoka.markov.Core;
 
+import me.Usoka.markov.exceptions.IllegalWordException;
 import me.Usoka.markov.exceptions.InvalidUserException;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
@@ -309,6 +310,9 @@ public class BotListener extends ListenerAdapter {
 		} catch (InvalidUserException e) {
 			//Send default message for invalid user (without Text To Speech)
 			channel.sendMessage("No source data for current user").queue();
+		} catch (IllegalWordException e) {
+			//Send message alerting user that the specified word wasn't found
+			channel.sendMessage(e.getMessage()).queue();
 		}
 	}
 
