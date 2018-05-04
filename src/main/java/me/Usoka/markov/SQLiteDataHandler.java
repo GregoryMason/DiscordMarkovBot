@@ -15,11 +15,11 @@ public class SQLiteDataHandler implements DataHandler {
 	public SQLiteDataHandler(@NotNull String databaseDirectory) throws SQLException{
 		if (databaseDirectory.equals("")) throw new IllegalArgumentException("Database directory cannot be empty String");
 		sqlDatabase = DriverManager.getConnection("jdbc:sqlite:"+ databaseDirectory);
+		if (sqlDatabase == null) throw new IllegalArgumentException("Could not open connection: connection was null");
 	}
 
 	@Override
 	public int getLexiconSizeAll() {
-		if (sqlDatabase == null) return 0;
 		String query = "SELECT count(DISTINCT word) FROM user_lexicons";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
@@ -32,7 +32,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public int getLexiconSizeFor(@NotNull User user) {
-		if (sqlDatabase == null) return 0;
 		String blankQuery = "SELECT count(word) FROM user_lexicons WHERE userID = ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
@@ -46,7 +45,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public int getWordFrequencyAll(@NotNull String word) {
-		if (sqlDatabase == null) return 0;
 		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE word = ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
@@ -60,7 +58,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public int getWordFrequencyFor(@NotNull String word, @NotNull User user) {
-		if (sqlDatabase == null) return 0;
 		String blankQuery = "SELECT frequency FROM user_lexicons WHERE userID = ? AND word = ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
@@ -75,7 +72,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public Set<String> getLexiconAll() {
-		if (sqlDatabase == null) return new HashSet<>();
 		String query = "SELECT DISTINCT word FROM user_lexicons";
 
 		Set<String> lexicon = new HashSet<>();
@@ -92,7 +88,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public Set<String> getLexiconFor(@NotNull User user) {
-		if (sqlDatabase == null) return new HashSet<>();
 		String query = "SELECT word FROM user_lexicons WHERE userID = ?";
 
 		Set<String> lexicon = new HashSet<>();
@@ -160,7 +155,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public Map<String, Integer> getLinksAll(@NotNull String word) {
-		if (sqlDatabase == null) return new HashMap<>();
 		String blankQuery = "SELECT links.endWord, sum(ALL user_links.frequency) FROM user_links " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
 				"WHERE links.startWord = ? GROUP BY links.endWord";
@@ -182,7 +176,6 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public Map<String, Integer> getLinksFor(@NotNull User user, @NotNull String word) {
-		if (sqlDatabase == null) return new HashMap<>();
 		String blankQuery = "SELECT links.endWord, sum(ALL user_links.frequency) FROM users " +
 				"LEFT JOIN user_links ON users.userID = user_links.userID " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
