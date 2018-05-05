@@ -77,7 +77,11 @@ public class SQLiteDataHandler implements DataHandler {
 		Set<String> lexicon = new HashSet<>();
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
 			ResultSet rs = prepState.executeQuery();
-			while (rs.next()) lexicon.add(rs.getString(1));
+			while (rs.next()) {
+				String item = rs.getString(1);
+				//Make sure to not add empty strings
+				if (!item.matches("^(\\s+)?$")) lexicon.add(item);
+			}
 			rs.close();
 		} catch (SQLException e) {
 			System.err.println("SQLException in getLexiconAll: "+ e);
@@ -94,7 +98,11 @@ public class SQLiteDataHandler implements DataHandler {
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(query)) {
 			prepState.setLong(1, user.getIdLong());
 			ResultSet rs = prepState.executeQuery();
-			while (rs.next()) lexicon.add(rs.getString(1));
+			while (rs.next()) {
+				String item = rs.getString(1);
+				//Make sure to not add empty strings
+				if (!item.matches("^(\\s+)?$")) lexicon.add(item);
+			}
 			rs.close();
 		} catch (SQLException e) {
 			System.err.println("SQLException in getLexiconFor: "+ e);
@@ -147,7 +155,9 @@ public class SQLiteDataHandler implements DataHandler {
 		List<String> returnList = new ArrayList<>();
 
 		while (rs.next()) for (int i = 0; i < rs.getInt(2); i++) {
-			returnList.add(rs.getString(1));
+			String item = rs.getString(1);
+			//Make sure to not add empty strings
+			if (!item.matches("^(\\s+)?$")) returnList.add(item);
 		}
 		rs.close();
 		return returnList;
