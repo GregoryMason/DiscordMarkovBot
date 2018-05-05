@@ -165,7 +165,7 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public Map<String, Integer> getLinksAll(@NotNull String word) {
-		String blankQuery = "SELECT links.endWord, sum(ALL user_links.frequency) FROM user_links " +
+		String blankQuery = "SELECT links.endWord, sum(user_links.frequency) FROM user_links " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
 				"WHERE links.startWord = ? GROUP BY links.endWord";
 
@@ -186,7 +186,7 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public Map<String, Integer> getLinksFor(@NotNull User user, @NotNull String word) {
-		String blankQuery = "SELECT links.endWord, sum(ALL user_links.frequency) FROM users " +
+		String blankQuery = "SELECT links.endWord, sum(user_links.frequency) FROM users " +
 				"LEFT JOIN user_links ON users.userID = user_links.userID " +
 				"LEFT JOIN links ON user_links.linkID = links.linkID " +
 				"WHERE users.userID = ? AND links.startWord = ? GROUP BY links.endWord";
