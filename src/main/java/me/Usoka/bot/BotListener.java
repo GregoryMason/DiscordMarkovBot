@@ -1,5 +1,6 @@
 package me.Usoka.bot;
 
+import com.sun.istack.internal.NotNull;
 import me.Usoka.markov.Core;
 
 import me.Usoka.markov.exceptions.IllegalWordException;
@@ -100,7 +101,10 @@ public class BotListener extends ListenerAdapter {
 	 * Set the userID related to the administrative account for this bot
 	 * @param userID ID as String for the admin user
 	 */
-	public void setAdmin(String userID) { this.adminUserID = userID; }
+	public void setAdmin(String userID) {
+		if (userID != null && !userID.matches("^[0-9]*$")) throw new IllegalArgumentException("Invalid userID format "+ userID);
+		this.adminUserID = userID;
+	}
 
 	/**
 	 * Listener for when the has successfully connect to the API and is ready to run
@@ -150,11 +154,11 @@ public class BotListener extends ListenerAdapter {
 	 */
 	private void interpretCommand(GuildMessageReceivedEvent event, String command, String content) {
 		MessageChannel channel = event.getChannel();
+		if (command == null || command.equals("")) return; //No command was given
+		if (content == null) content = "";
 
 		//TODO Set up something better for handling commands
 
-		//If the markov core is not initialised, following commands won't work
-		if (markovCore == null) return;
 
 		if (command.equals("gethistory") && event.getAuthor().getId().equals(adminUserID)) {
 			getAllChannelHistory(event.getGuild(), event.getChannel(), "Rediscovering the past...", 0);
@@ -176,8 +180,10 @@ public class BotListener extends ListenerAdapter {
 
 		if (command.equals("markov")) {
 			String markovData = markovCore.getMarkovString(content);
-			//TODO ensure that it will not print if there's too many following words that it exceeds the char limit
-			channel.sendMessage((markovData.equals(""))? "No data found" : "```"+ markovData +"```").queue();
+
+			//TODO Still display some results when there are too many
+			if (markovData.length() > 1500) channel.sendMessage("Too many results found.").queue();
+			else channel.sendMessage((markovData.equals(""))? "No data found" : "```"+ markovData +"```").queue();
 		}
 
 
@@ -240,7 +246,7 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("word") && content.equals("")) {
 			try {
 				String word = markovCore.getRandomWord();
-				channel.sendMessage(word.matches("^(\\s+)?$")? "No source data for current user" : word).queue();
+				channel.sendMessage(word).queue();
 			} catch (InvalidUserException e) {
 				channel.sendMessage("No source data for current user").queue();
 			}
@@ -321,7 +327,7 @@ public class BotListener extends ListenerAdapter {
 	 * Converts a User from an instance of {@link net.dv8tion.jda.core.entities.User} (for the API) to
 	 * {@link me.Usoka.markov.User} for the libraries used with the markov core
 	 */
-	private me.Usoka.markov.User convertUserClass(User u) {
+	private me.Usoka.markov.User convertUserClass(@NotNull User u) {
 		return new me.Usoka.markov.User(u.getIdLong(), u.getName());
 	}
 
@@ -329,7 +335,7 @@ public class BotListener extends ListenerAdapter {
 	 * Converts a Message from an instance of {@link net.dv8tion.jda.core.entities.Message} (for the API) to
 	 * {@link me.Usoka.markov.Message} for the libraries used with the markov core
 	 */
-	private me.Usoka.markov.Message convertMessageClass(Message m) {
+	private me.Usoka.markov.Message convertMessageClass(@NotNull Message m) {
 		return new me.Usoka.markov.Message(m.getIdLong(), m.getContentRaw(), convertUserClass(m.getAuthor()));
 	}
 
