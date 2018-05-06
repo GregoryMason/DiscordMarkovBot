@@ -24,11 +24,28 @@ public class Bot {
 	 */
 	private static String[] getPair(String pairedUserString) {
 		//Enforce that pairs must be valid format
-		if (!pairedUserString.matches("^[0-9]*(\\s+)?=(\\s+)?[0-9]*$")) {
+		if (!pairedUserString.matches("^[0-9]+(\\s+)?=(\\s+)?[0-9]+$")) {
 			throw new IllegalArgumentException("Invalid ignore user pair: "+ pairedUserString);
 		}
 
 		return pairedUserString.split("(\\s+)?=(\\s+)?");
+	}
+
+	/**
+	 * Checks the formatting for the config file. Throws exception if anything's invalid
+	 * @param configFile the <code>File</code> that is the configFile
+	 */
+	private static void checkConfigFormat(File configFile) {
+		try (Scanner s = new Scanner(configFile)) {
+			if (!s.nextLine().matches("^Token: .+")) throw new InvalidFormatException("Invalid token format");
+			if (!s.nextLine().matches("^Admin: [0-9]+$")) throw new InvalidFormatException("Invalid admin id format");
+			if (!s.nextLine().matches("^Home Guild: [0-9]+$")) throw new InvalidFormatException("Invalid home guild format");
+			if (!s.nextLine().matches("^Home Channel: [0-9]+$")) throw new InvalidFormatException("Invalid home channel format");
+			if (!s.nextLine().matches("^Ignored: ?((,\\s+)?([0-9]+)?)*")) throw new InvalidFormatException("Invalid ignored channel(s) format");
+			if (!s.nextLine().matches("^Merge Users: ((,\\s+)?[0-9]+(\\s+)?=(\\s+)?[0-9]+)*")) throw new InvalidFormatException("Invalid merged users format");
+		} catch (IOException e) {
+			System.err.println("Error in format check despite successful initial file opening: "+ e);
+		}
 	}
 
 	public static void main(String[] args) throws LoginException, RateLimitedException{
@@ -38,12 +55,18 @@ public class Bot {
 
 		//Try reading in from an existing config file
 		try (Scanner config = new Scanner(new File(configFile))) {
-			//TODO ensure file is in correct formatting FIXME potential errors
-			token = config.nextLine().substring(7);												//Read in bot token
-			adminUserID = config.nextLine().substring(7);										//Read in admin user ID
-			homeGuildID = config.nextLine().substring(12);										//Read in home guild
-			homeGuildTargetChannel = config.nextLine().substring(14);							//Read in bot channel
-			homeGuildIgnoredChannels = config.nextLine().substring(9).split(",(\\s+)?");	//Read in ignored channels
+			//Check the file formatting
+			checkConfigFormat(new File(configFile));
+
+			token = config.nextLine().substring(7);						//Read in bot token
+			adminUserID = config.nextLine().substring(7);				//Read in admin user ID
+			homeGuildID = config.nextLine().substring(12);				//Read in home guild
+			homeGuildTargetChannel = config.nextLine().substring(14);	//Read in bot channel
+
+			String line = config.nextLine();							//Read in ignored channels
+			if (!line.matches("^Ignored: ?$")) { //Only try reading in ignore channels if any are specified
+				homeGuildIgnoredChannels = line.substring(9).split(",(\\s+)?");
+			}
 
 			//Read in pairs of users to merge for markov
 			for (String userPair : config.nextLine().substring(13).split(",(\\s+)?")) {
@@ -55,7 +78,8 @@ public class Bot {
 				}
 			}
 
-		} catch (FileNotFoundException fileNotFound) { //File doesn't exist, so prompt user in order to create a config file
+		} catch (FileNotFoundException e) {
+			//File doesn't exist, or is in incorrect format, so prompt user in order to create a config file
 			Scanner console = new Scanner(System.in);
 
 			//TODO input validation
@@ -95,7 +119,7 @@ public class Bot {
 			//Save the collected input to a new config file
 			try (FileWriter config = new FileWriter(new File(configFile))) {
 				config.write("Token: "+ token +"\r\n");							//Bot token
-				config.write("Admin: "+"\r\n");									//Admin user ID
+				config.write("Admin: "+ adminUserID +"\r\n");					//Admin user ID
 				config.write("Home Guild: "+ homeGuildID +"\r\n");				//Home guild
 				config.write("Home Channel: "+ homeGuildTargetChannel +"\r\n");	//Bot channel
 				config.write("Ignored: "+ ignoredChannels +"\r\n");				//Ignored channels
