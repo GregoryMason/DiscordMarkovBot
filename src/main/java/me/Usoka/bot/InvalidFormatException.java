@@ -1,6 +1,6 @@
 package me.Usoka.bot;
 
-public class InvalidFormatException extends IllegalArgumentException {
+public class InvalidFormatException extends RuntimeException {
 
 	/**
 	 * Constructs a new <code>InvalidFormatException</code> with no
