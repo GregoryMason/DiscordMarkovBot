@@ -164,6 +164,9 @@ public class BotListener extends ListenerAdapter {
 			getAllChannelHistory(event.getGuild(), event.getChannel(), "Rediscovering the past...", 0);
 		}
 
+		//Following commands can only be interpreted in the specified bot channel
+		if (!event.getChannel().getId().equals(botChannelID)) return;
+
 		if (command.equals("context") && !content.equals("")) {
 			try {
 				String contexts = markovCore.getContextOf(content);
@@ -245,9 +248,6 @@ public class BotListener extends ListenerAdapter {
 				event.getMessage().addReaction("❌").queue();
 			}
 		}
-
-		//Following commands can only be interpreted in the specified bot channel
-		if (!event.getChannel().getId().equals(botChannelID)) return;
 
 		//For building Markov sentences
 		if (command.equals("quote")) sendMarkovSentence(channel, content, false);
