@@ -192,7 +192,7 @@ public class SQLiteSourceHandler implements SourceHandler {
 		String queryBlank = "SELECT users.userID, users.username, messages.messageID, messages.content " +
 				"FROM users LEFT JOIN user_messages ON users.userID = user_messages.userID " +
 				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +
-				"WHERE content LIKE ?";
+				"WHERE content LIKE ? ORDER BY messages.messageID";
 
 		List<Message> compiledList = new ArrayList<>();
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(queryBlank)) {
