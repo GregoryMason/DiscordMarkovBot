@@ -26,12 +26,12 @@ public class Message {
 			"(" + //Commands with parameters that follow it
 			"bet|" +										//Blackjack bot
 			"playlist|play playlist|" +						//Music bot
-			"quote|count|markov|context|source|setuser" +	//Markov bot
+			"quote|speak|count|markov|context|source|setuser" +	//Markov bot
 			")(\\s+.*|$)|" +
 			"(" + //Commands which are only the command
 			"start|hit|bet|login|check|logincreation|" +				//Blackjack bot
 			"queue|nowplaying|playlists|forceskip|skip|shuffle|stop|" +	//Music bot
-			"speak|gethistory|word" +									//Markov bot
+			"gethistory|word" +											//Markov bot
 			")$)", Pattern.CASE_INSENSITIVE);
 
 	private final long id;
