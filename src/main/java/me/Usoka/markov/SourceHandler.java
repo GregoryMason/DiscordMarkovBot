@@ -69,6 +69,14 @@ public interface SourceHandler {
 	String getMostRecentMessageID() throws IOException;
 
 	/**
+	 * Compiles a list of all messages in the source that include a given sub string
+	 * @param subString sub string to check messages for
+	 * @return <code>List</code> of messages containing that sub string
+	 * @throws IOException if there is an error reading from the source
+	 */
+	List<Message> getMessagesContaining(String subString) throws IOException;
+
+	/**
 	 * Counts the number of messages in the source data for a specified user
 	 * @param user specified user to count the messages for
 	 * @return number of messages which the user has sent

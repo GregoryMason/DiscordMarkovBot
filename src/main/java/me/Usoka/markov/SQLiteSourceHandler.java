@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SQLiteSourceHandler implements SourceHandler {
@@ -184,6 +185,32 @@ public class SQLiteSourceHandler implements SourceHandler {
 		} catch (SQLException e) {
 			throw new IOException("Database read failed", e);
 		}
+	}
+
+	@Override
+	public List<Message> getMessagesContaining(String subString) throws IOException{
+		String queryBlank = "SELECT users.userID, users.username, messages.messageID, messages.content " +
+				"FROM users LEFT JOIN user_messages ON users.userID = user_messages.userID " +
+				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +
+				"WHERE content LIKE ?";
+
+		List<Message> compiledList = new ArrayList<>();
+		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(queryBlank)) {
+			prepStatement.setString(1,"%"+ subString +"%");
+
+			ResultSet rs = prepStatement.executeQuery();
+			while (rs.next()) {
+				compiledList.add(new Message(
+						rs.getLong(3),
+						rs.getString(4),
+						new User(rs.getLong(1), rs.getString(2))
+				));
+			}
+		} catch (SQLException e) {
+			throw new IOException("Database read failed", e);
+		}
+
+		return compiledList;
 	}
 
 	@Override
