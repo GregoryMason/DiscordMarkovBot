@@ -12,12 +12,12 @@ public class Message {
 	/**
 	 * Pattern used to find links in messages.
 	 */
-	private Pattern LINK_PATTERN = Pattern.compile("((https?|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)", Pattern.CASE_INSENSITIVE);
+	private Pattern LINK_PATTERN = Pattern.compile("((https?|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?!\\+-=\\\\\\.&]*)", Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * Pattern used to find escaped links in messages.
 	 */
-	private Pattern ESCAPED_LINK_PATTERN = Pattern.compile("<((https?|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)>", Pattern.CASE_INSENSITIVE);
+	private Pattern ESCAPED_LINK_PATTERN = Pattern.compile("<((https?|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?!\\+-=\\\\\\.&]*)>", Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * Pattern used to identify commands that should be ignored
