@@ -23,4 +23,11 @@ public class User {
 	 * Get the name of the user
 	 */
 	public String getName() { return name; }
+
+	/**
+	 * Get the user as a mention
+	 */
+	public String asMention() {
+		return String.format("<@%d>", id);
+	}
 }
