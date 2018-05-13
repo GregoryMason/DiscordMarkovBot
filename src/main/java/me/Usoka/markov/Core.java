@@ -114,6 +114,30 @@ public class Core {
 	}
 
 	/**
+	 * Finds the context that a given substring has been said in the source data
+	 * @param subString
+	 * @return Compiled message of all messages containing the given substring
+	 * @throws IOException if there is an error reading from the source data
+	 */
+	public String getContextOf (@NotNull String subString) throws IOException{
+		List<Message> messages = markovSource.getMessagesContaining(subString);
+
+		StringBuilder compiledMessage = new StringBuilder();
+
+		for (Message message : messages) {
+			//FIXME cases like substring = "the" returning "them"/"they"/"these"/etc
+			//Add the Author of the message
+			compiledMessage.append(message.getAuthor().asMention());
+			compiledMessage.append(": ");
+			//Add the message content
+			compiledMessage.append(message.getContentRaw());
+			compiledMessage.append("\r\n");
+		}
+
+		return compiledMessage.toString();
+	}
+
+	/**
 	 * Returns the markov links (potential next words) for a specified word
 	 * @param word word to find markov links for
 	 * @return <code>Map</code> of linked words to their frequencies
