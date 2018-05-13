@@ -164,7 +164,17 @@ public class BotListener extends ListenerAdapter {
 			getAllChannelHistory(event.getGuild(), event.getChannel(), "Rediscovering the past...", 0);
 		}
 
-		if (command.equals("context")) channel.sendMessage("Feature missing \uD83D\uDE22").queue();
+		if (command.equals("context") && !content.equals("")) {
+			try {
+				String contexts = markovCore.getContextOf(content);
+
+				//TODO Still display some results when there are too many
+				if (contexts.length() > 1700) channel.sendMessage("Too many results found.").queue();
+				else channel.sendMessage((contexts.equals("")? "No messages found" : contexts)).queue();
+			} catch (IOException e) {
+				channel.sendMessage("Failed to read source").queue();
+			}
+		}
 
 		if (command.equals("count")) {
 			//Count all unique words in the lexicon
