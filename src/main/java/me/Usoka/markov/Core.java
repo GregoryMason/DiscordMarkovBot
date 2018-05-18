@@ -114,18 +114,20 @@ public class Core {
 	}
 
 	/**
-	 * Finds the context that a given substring has been said in the source data
-	 * @param subString
-	 * @return Compiled message of all messages containing the given substring
+	 * Finds the contexts in which a specified word has been said in the source messages
+	 * @param word the word to look for in the source messages
+	 * @return Compiled message of all messages containing the given word
 	 * @throws IOException if there is an error reading from the source data
 	 */
-	public String getContextOf (@NotNull String subString) throws IOException{
-		List<Message> messages = markovSource.getMessagesContaining(subString);
+	public String getContextOf (@NotNull String word) throws IOException{
+		List<Message> messages = markovSource.getMessagesContaining(word);
 
 		StringBuilder compiledMessage = new StringBuilder();
 
 		for (Message message : messages) {
-			//FIXME cases like substring = "the" returning "them"/"they"/"these"/etc
+			//Ensure the occurrence of the word is not as a substring of a longer word
+			if (!message.getContentRaw().matches(".*\\b(?i)"+ word +"(?-i)\\b.*")) continue;
+
 			//Add the Author of the message
 			compiledMessage.append(message.getAuthor().asMention());
 			compiledMessage.append(": ");
