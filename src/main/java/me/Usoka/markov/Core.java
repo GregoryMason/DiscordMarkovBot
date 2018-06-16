@@ -127,12 +127,9 @@ public class Core {
 		messages.stream()
 				//Ensure the occurrence of the word is not as a substring of a longer word
 				.filter(m -> m.getContentRaw().matches(".*\\b(?i)"+ word +"(?-i)\\b.*"))
-				.forEach(m -> {
-					//Add the Author of the message
-					compiledMessage.append(m.getAuthor().asMention()).append(": ");
-					//Add the message content
-					compiledMessage.append(m.getContentRaw()).append("\r\n");
-				});
+				//Add Author and message content
+				.map(m -> m.getAuthor().asMention() + ": " + m.getContentRaw() + "\r\n")
+				.forEach(compiledMessage::append);
 
 		return compiledMessage.toString();
 	}
