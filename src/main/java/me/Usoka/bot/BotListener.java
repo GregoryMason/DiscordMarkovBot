@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * TODO split into multiple classes, this has gotten too big/complicates <p/>
@@ -467,14 +468,12 @@ public class BotListener extends ListenerAdapter {
 		embedBuilder.setTitle(guild.getName(),"https://i.imgur.com/NqbaLqs.mp4").setThumbnail(guild.getIconUrl());
 		embedBuilder.setFooter("Started", null).setTimestamp(java.time.OffsetDateTime.now());
 
-		//Create embed fields based on all the text channels in the guild
-		for (TextChannel channel : guild.getTextChannels()) {
-			//Skip channels that don't have any more recent messages than specified earliest message
-			if (channel.getLatestMessageIdLong() <= earliestMessageID) continue;
-			//TODO Skip channels that the bot does not have access to
-
-			embedBuilder.addField(channel.getName() +" [Queued]","Messages: 0",false);
-		}
+		//Create embed fields based on the text channels in the guild
+		guild.getTextChannels().stream()
+				//Filter out channels that have a latest message that's older than the earliest message to retrieve
+				.filter(c -> !c.hasLatestMessage() || c.getLatestMessageIdLong() > earliestMessageID)
+				//TODO Filter out channels that bot cannot access message history for
+				.forEach(c -> embedBuilder.addField(c.getName() +" [Queued]", "Messages: 0", false));
 
 		//Queue the message used to log progress, and when it's successfully sent call method for actually retrieving history
 		logChannel.sendMessage(messageContent).embed(embedBuilder.build()).queue((message) -> saveChannelHistory(message, earliestMessageID));
