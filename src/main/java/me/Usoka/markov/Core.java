@@ -124,17 +124,15 @@ public class Core {
 
 		StringBuilder compiledMessage = new StringBuilder();
 
-		for (Message message : messages) {
-			//Ensure the occurrence of the word is not as a substring of a longer word
-			if (!message.getContentRaw().matches(".*\\b(?i)"+ word +"(?-i)\\b.*")) continue;
-
-			//Add the Author of the message
-			compiledMessage.append(message.getAuthor().asMention());
-			compiledMessage.append(": ");
-			//Add the message content
-			compiledMessage.append(message.getContentRaw());
-			compiledMessage.append("\r\n");
-		}
+		messages.stream()
+				//Ensure the occurrence of the word is not as a substring of a longer word
+				.filter(m -> m.getContentRaw().matches(".*\\b(?i)"+ word +"(?-i)\\b.*"))
+				.forEach(m -> {
+					//Add the Author of the message
+					compiledMessage.append(m.getAuthor().asMention()).append(": ");
+					//Add the message content
+					compiledMessage.append(m.getContentRaw()).append("\r\n");
+				});
 
 		return compiledMessage.toString();
 	}
