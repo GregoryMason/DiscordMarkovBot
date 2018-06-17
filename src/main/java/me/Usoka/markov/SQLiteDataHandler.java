@@ -45,7 +45,7 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public int getWordFrequencyAll(@NotNull String word) {
-		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE word = ?";
+		String blankQuery = "SELECT sum(frequency) FROM user_lexicons WHERE word LIKE ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setString(1, word);
@@ -58,7 +58,7 @@ public class SQLiteDataHandler implements DataHandler {
 
 	@Override
 	public int getWordFrequencyFor(@NotNull String word, @NotNull User user) {
-		String blankQuery = "SELECT frequency FROM user_lexicons WHERE userID = ? AND word = ?";
+		String blankQuery = "SELECT frequency FROM user_lexicons WHERE userID = ? AND word LIKE ?";
 
 		try (PreparedStatement prepState = sqlDatabase.prepareStatement(blankQuery)) {
 			prepState.setLong(1, user.getIdLong());
