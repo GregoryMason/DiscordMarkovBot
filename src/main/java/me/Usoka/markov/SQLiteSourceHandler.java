@@ -192,10 +192,13 @@ public class SQLiteSourceHandler implements SourceHandler {
 		String queryBlank = "SELECT users.userID, users.username, messages.messageID, messages.content " +
 				"FROM users LEFT JOIN user_messages ON users.userID = user_messages.userID " +
 				"LEFT JOIN messages ON user_messages.messageID = messages.messageID " +
-				"WHERE content LIKE ? ORDER BY messages.messageID";
+				"WHERE content LIKE ? ESCAPE '\\' ORDER BY messages.messageID";
 
 		List<Message> compiledList = new ArrayList<>();
 		try (PreparedStatement prepStatement = sqlDatabase.prepareStatement(queryBlank)) {
+			//Escape wild-card characters from the substring
+			subString = subString.replaceAll("\\\\", "\\\\\\\\");
+			subString = subString.replaceAll("%", "\\\\%").replaceAll("_", "\\\\_");
 			prepStatement.setString(1,"%"+ subString +"%");
 
 			ResultSet rs = prepStatement.executeQuery();
