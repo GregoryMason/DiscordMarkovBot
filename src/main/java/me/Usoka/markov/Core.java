@@ -7,6 +7,7 @@ import me.Usoka.markov.exceptions.IllegalWordException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class Core {
 	private SourceHandler markovSource;
@@ -119,16 +120,17 @@ public class Core {
 	 * @return Compiled message of all messages containing the given word
 	 * @throws IOException if there is an error reading from the source data
 	 */
-	public String getContextOf (@NotNull String word) throws IOException{
+	public String getContextOf(@NotNull String word) throws IOException{
 		List<Message> messages = markovSource.getMessagesContaining(word);
 
 		StringBuilder compiledMessage = new StringBuilder();
 
 		messages.stream()
 				//Ensure the occurrence of the word is not as a substring of a longer word
-				.filter(m -> m.getContentRaw().matches(".*\\b(?i)"+ word +"(?-i)\\b.*"))
+				//FIXME Some 'words' being filtered out when they shouldn't (eg "\\[T]/")
+				.filter(m -> m.getContentRaw().matches(".*\\b(?i)"+ Pattern.quote(word) +"(?-i)\\b.*"))
 				//Add Author and message content
-				.map(m -> m.getAuthor().asMention() + ": " + m.getContentRaw() + "\r\n")
+				.map(m -> m.getAuthor().asMention() +": "+ m.getContentRaw() +"\r\n")
 				.forEach(compiledMessage::append);
 
 		return compiledMessage.toString();
