@@ -132,7 +132,8 @@ public class BotListener extends ListenerAdapter {
 			getAllChannelHistory(homeGuild, api.getTextChannelById(botChannelID),
 					"Starting bot", Long.parseUnsignedLong(markovCore.getMostRecentID()));
 		} catch (IOException e) {
-			System.err.println("Could not retrieve message history: "+ e);
+			System.err.println("Could not retrieve message history: ");
+			e.printStackTrace();
 		}
 
 		System.out.println("Resolving "+ queuedEvents.size() +" queued events");
@@ -177,6 +178,7 @@ public class BotListener extends ListenerAdapter {
 				else channel.sendMessage((contexts.equals("")? "No messages found" : contexts)).queue();
 			} catch (IOException e) {
 				channel.sendMessage("Failed to read source").queue();
+				e.printStackTrace();
 			}
 		}
 
