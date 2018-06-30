@@ -185,7 +185,8 @@ public class BotListener extends ListenerAdapter {
 		if (command.equals("count")) {
 			//Count all unique words in the lexicon
 			if (content.equals("")) {
-				channel.sendMessage("Lexicon contains "+ markovCore.getLexiconSize() +" unique words").queue();
+				int lexiconSize = markovCore.getLexiconSize();
+				channel.sendMessage("Lexicon contains "+ lexiconSize +" unique word"+ ((lexiconSize == 1)? "":"s")).queue();
 				return;
 			}
 
@@ -211,7 +212,7 @@ public class BotListener extends ListenerAdapter {
 
 				if (targetUser != null) messageCount = markovCore.getSourceCountOf(convertUserClass(targetUser));
 				if (messageCount <= 0) event.getChannel().sendMessage("No data found for "+ content).queue();
-				else event.getChannel().sendMessage(messageCount +" messages in source from "+ content).queue();
+				else event.getChannel().sendMessage(messageCount +" message"+ (messageCount == 1?"":"s") +" in source from "+ content).queue();
 			}
 		}
 
@@ -282,7 +283,7 @@ public class BotListener extends ListenerAdapter {
 		if (reason == null) reason = "Automatic nickname change";
 
 		if (nickname.length() > NICKNAME_MAX_LENGTH) { //Ensure nickname cannot exceed max length
-			throw new IllegalArgumentException("Specified nickname is too long (max 32 chars) " + nickname);
+			throw new IllegalArgumentException("Specified nickname is too long (max: "+ NICKNAME_MAX_LENGTH +" chars) " + nickname);
 		}
 
 		//Ensure the bot is part of the specified guild
