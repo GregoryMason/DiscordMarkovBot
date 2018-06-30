@@ -75,8 +75,8 @@ public class Message {
 		cleanContent = ESCAPED_LINK_PATTERN.matcher(cleanContent).replaceAll(" ");
 		cleanContent = LINK_PATTERN.matcher(cleanContent).replaceAll("");
 
-		//Remove excess spaces TODO make it not remove newline characters
-		cleanContent = cleanContent.replaceAll("\\s+", " ").trim();
+		//Remove excess spaces and tabs
+		cleanContent = cleanContent.replaceAll("[ \t]+", " ").trim();
 
 		return cleanContent;
 	}
