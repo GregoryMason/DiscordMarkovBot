@@ -127,8 +127,7 @@ public class Core {
 
 		messages.stream()
 				//Ensure the occurrence of the word is not as a substring of a longer word
-				//FIXME Some 'words' being filtered out when they shouldn't (eg "\\[T]/")
-				.filter(m -> m.getContentRaw().matches(".*\\b(?i)"+ Pattern.quote(word) +"(?-i)\\b.*"))
+				.filter(m -> m.getContentRaw().matches("(?:^|.*[^a-zA-Z0-9])(?i)"+ Pattern.quote(word) +"(?-i)(?:[^a-zA-Z0-9].*|$)"))
 				//Add Author and message content
 				.map(m -> m.getAuthor().asMention() +": "+ m.getContentRaw() +"\r\n")
 				.forEach(compiledMessage::append);
