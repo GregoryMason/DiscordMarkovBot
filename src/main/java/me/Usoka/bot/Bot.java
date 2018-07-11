@@ -147,5 +147,7 @@ public class Bot {
 			//TODO formatting checks for token
 			this.token = token;
 		}
+
+		public String getToken() { return token; }
 	}
 }
