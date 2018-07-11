@@ -140,6 +140,12 @@ public class Bot {
 	}
 
 	public static class Config {
-		//TODO
+		private final String token;
+
+		public Config(String token) {
+			if (token == null || token.isEmpty()) throw new IllegalArgumentException("Invalid bot token (null or empty)");
+			//TODO formatting checks for token
+			this.token = token;
+		}
 	}
 }
