@@ -160,5 +160,10 @@ public class Bot {
 			this.adminID = adminUserID;
 		}
 		public String getAdminID() { return adminID; }
+
+		/**
+		 * Checks if the given user's ID matches that of the stored Admin User ID
+		 */
+		public boolean isAdminUser(String userID) { return userID.equals(adminID); }
 	}
 }
