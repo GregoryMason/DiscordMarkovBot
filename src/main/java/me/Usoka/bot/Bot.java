@@ -138,4 +138,8 @@ public class Bot {
 		JDA api = new JDABuilder(AccountType.BOT).setToken(token).buildAsync();
 		api.addEventListener(botListener);
 	}
+
+	public static class Config {
+		//TODO
+	}
 }
