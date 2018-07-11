@@ -156,7 +156,7 @@ public class Bot {
 		public void setAdminID(String adminUserID) {
 			if (adminUserID != null) {
 				if (adminUserID.isEmpty()) throw new IllegalArgumentException("Admin user ID cannot be empty");
-				if (adminUserID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid admin user ID format ("+ adminUserID +")");
+				if (!adminUserID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid admin user ID format ("+ adminUserID +")");
 			}
 			this.adminID = adminUserID;
 		}
@@ -170,7 +170,7 @@ public class Bot {
 		public void setHomeGuildID(String homeGuildID) {
 			if (homeGuildID != null) {
 				if (homeGuildID.isEmpty()) throw new IllegalArgumentException("Guild ID cannot be empty");
-				if (homeGuildID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid Guild ID format ("+ homeGuildID +")");
+				if (!homeGuildID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid Guild ID format ("+ homeGuildID +")");
 			}
 			this.homeID = homeGuildID;
 		}
@@ -184,7 +184,7 @@ public class Bot {
 		public void setTargetChannel(String targetChannelID) {
 			if (targetChannelID != null) {
 				if (targetChannelID.isEmpty()) throw new IllegalArgumentException("Channel ID cannot be empty");
-				if (targetChannelID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid Channel ID format ("+ targetChannelID +")");
+				if (!targetChannelID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid Channel ID format ("+ targetChannelID +")");
 			}
 			this.targetChannelID = targetChannelID;
 		}
