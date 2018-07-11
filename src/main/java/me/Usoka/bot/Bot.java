@@ -144,6 +144,7 @@ public class Bot {
 		private final String token;
 		private String adminID;
 		private String homeID;
+		private String targetChannelID;
 
 		public Config(String token) {
 			if (token == null || token.isEmpty()) throw new IllegalArgumentException("Invalid bot token (null or empty)");
@@ -180,5 +181,14 @@ public class Bot {
 		 * Checks if the given Guild's ID matches that of the stored Home Guild ID
 		 */
 		public boolean isHomeGuid(String guildID) { return guildID.equals(homeID); }
+
+		public void setTargetChannel(String targetChannelID) {
+			if (targetChannelID != null) {
+				if (targetChannelID.isEmpty()) throw new IllegalArgumentException("Channel ID cannot be empty");
+				if (targetChannelID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid Channel ID format ("+ targetChannelID +")");
+			}
+			this.targetChannelID = targetChannelID;
+		}
+		public String getTargetChannelID() { return targetChannelID; }
 	}
 }
