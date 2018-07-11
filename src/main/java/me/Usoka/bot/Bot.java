@@ -143,6 +143,7 @@ public class Bot {
 	public static class Config {
 		private final String token;
 		private String adminID;
+		private String homeID;
 
 		public Config(String token) {
 			if (token == null || token.isEmpty()) throw new IllegalArgumentException("Invalid bot token (null or empty)");
@@ -165,5 +166,19 @@ public class Bot {
 		 * Checks if the given user's ID matches that of the stored Admin User ID
 		 */
 		public boolean isAdminUser(String userID) { return userID.equals(adminID); }
+
+		public void setHomeGuildID(String homeGuildID) {
+			if (homeGuildID != null) {
+				if (homeGuildID.isEmpty()) throw new IllegalArgumentException("Guild ID cannot be empty");
+				if (homeGuildID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid Guild ID format ("+ homeGuildID +")");
+			}
+			this.homeID = homeGuildID;
+		}
+		public String getHomeGuildID() { return homeID; }
+
+		/**
+		 * Checks if the given Guild's ID matches that of the stored Home Guild ID
+		 */
+		public boolean isHomeGuid(String guildID) { return guildID.equals(homeID); }
 	}
 }
