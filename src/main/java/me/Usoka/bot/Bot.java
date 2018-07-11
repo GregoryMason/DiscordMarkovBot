@@ -50,7 +50,7 @@ public class Bot {
 
 	public static void main(String[] args) throws LoginException, RateLimitedException{
 		Config botConfig;
-		String homeGuildID, homeGuildTargetChannel;
+		String homeGuildTargetChannel;
 		String[] homeGuildIgnoredChannels;
 		Map<String, String> mergeUsers = new HashMap<>();
 
@@ -61,7 +61,7 @@ public class Bot {
 
 			botConfig = new Config(config.nextLine().substring(7));						//Read in bot token
 			botConfig.setAdminID(config.nextLine().substring(7));				//Read in admin user ID
-			homeGuildID = config.nextLine().substring(12);				//Read in home guild
+			botConfig.setHomeGuildID(config.nextLine().substring(12));				//Read in home guild
 			homeGuildTargetChannel = config.nextLine().substring(14);	//Read in bot channel
 
 			String line = config.nextLine();							//Read in ignored channels
@@ -92,7 +92,7 @@ public class Bot {
 			botConfig.setAdminID(console.nextLine());
 
 			System.out.print("Home Guild ID: ");
-			homeGuildID = console.nextLine();
+			botConfig.setHomeGuildID(console.nextLine());
 
 			System.out.print("Target Channel ID: ");
 			homeGuildTargetChannel = console.nextLine();
@@ -121,7 +121,7 @@ public class Bot {
 			try (FileWriter config = new FileWriter(new File(configFile))) {
 				config.write("Token: "+ botConfig.getToken() +"\r\n");							//Bot token
 				config.write("Admin: "+ botConfig.getAdminID() +"\r\n");					//Admin user ID
-				config.write("Home Guild: "+ homeGuildID +"\r\n");				//Home guild
+				config.write("Home Guild: "+ botConfig.getHomeGuildID() +"\r\n");				//Home guild
 				config.write("Home Channel: "+ homeGuildTargetChannel +"\r\n");	//Bot channel
 				config.write("Ignored: "+ ignoredChannels +"\r\n");				//Ignored channels
 				config.write("Merge Users: "+ mergedUsers);						//Users to merge
@@ -131,7 +131,7 @@ public class Bot {
 			}
 		}
 
-		BotListener botListener = new BotListener(homeGuildID, homeGuildTargetChannel);
+		BotListener botListener = new BotListener(botConfig.getHomeGuildID(), homeGuildTargetChannel);
 		botListener.setAdmin(botConfig.getAdminID());
 		//TODO add ignored channels to botListener
 		//TODO add users to merge to botListener
