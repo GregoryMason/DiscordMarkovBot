@@ -142,6 +142,7 @@ public class Bot {
 
 	public static class Config {
 		private final String token;
+		private String adminID;
 
 		public Config(String token) {
 			if (token == null || token.isEmpty()) throw new IllegalArgumentException("Invalid bot token (null or empty)");
@@ -150,5 +151,14 @@ public class Bot {
 		}
 
 		public String getToken() { return token; }
+
+		public void setAdminID(String adminUserID) {
+			if (adminUserID != null) {
+				if (adminUserID.isEmpty()) throw new IllegalArgumentException("Admin user ID cannot be empty");
+				if (adminUserID.matches("^\\d+$")) throw new IllegalArgumentException("Invalid admin user ID format ("+ adminUserID +")");
+			}
+			this.adminID = adminUserID;
+		}
+		public String getAdminID() { return adminID; }
 	}
 }
