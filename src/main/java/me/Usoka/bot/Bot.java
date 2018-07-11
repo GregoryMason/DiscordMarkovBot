@@ -50,7 +50,7 @@ public class Bot {
 
 	public static void main(String[] args) throws LoginException, RateLimitedException{
 		Config botConfig;
-		String adminUserID, homeGuildID, homeGuildTargetChannel;
+		String homeGuildID, homeGuildTargetChannel;
 		String[] homeGuildIgnoredChannels;
 		Map<String, String> mergeUsers = new HashMap<>();
 
@@ -60,7 +60,7 @@ public class Bot {
 			checkConfigFormat(new File(configFile));
 
 			botConfig = new Config(config.nextLine().substring(7));						//Read in bot token
-			adminUserID = config.nextLine().substring(7);				//Read in admin user ID
+			botConfig.setAdminID(config.nextLine().substring(7));				//Read in admin user ID
 			homeGuildID = config.nextLine().substring(12);				//Read in home guild
 			homeGuildTargetChannel = config.nextLine().substring(14);	//Read in bot channel
 
@@ -89,7 +89,7 @@ public class Bot {
 			botConfig = new Config(console.nextLine());
 
 			System.out.print("Admin User ID: ");
-			adminUserID = console.nextLine();
+			botConfig.setAdminID(console.nextLine());
 
 			System.out.print("Home Guild ID: ");
 			homeGuildID = console.nextLine();
@@ -120,7 +120,7 @@ public class Bot {
 			//Save the collected input to a new config file
 			try (FileWriter config = new FileWriter(new File(configFile))) {
 				config.write("Token: "+ botConfig.getToken() +"\r\n");							//Bot token
-				config.write("Admin: "+ adminUserID +"\r\n");					//Admin user ID
+				config.write("Admin: "+ botConfig.getAdminID() +"\r\n");					//Admin user ID
 				config.write("Home Guild: "+ homeGuildID +"\r\n");				//Home guild
 				config.write("Home Channel: "+ homeGuildTargetChannel +"\r\n");	//Bot channel
 				config.write("Ignored: "+ ignoredChannels +"\r\n");				//Ignored channels
@@ -132,7 +132,7 @@ public class Bot {
 		}
 
 		BotListener botListener = new BotListener(homeGuildID, homeGuildTargetChannel);
-		botListener.setAdmin(adminUserID);
+		botListener.setAdmin(botConfig.getAdminID());
 		//TODO add ignored channels to botListener
 		//TODO add users to merge to botListener
 
