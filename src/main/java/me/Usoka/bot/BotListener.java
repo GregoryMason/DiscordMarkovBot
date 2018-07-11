@@ -47,7 +47,7 @@ public class BotListener extends ListenerAdapter {
 	/**
 	 * Path to resource folder from where the program runs
 	 */
-	private static final String RESOURCES_PATH = "src\\main\\resources\\";
+	private static final String RESOURCES_PATH = "src/main/resources/";
 
 	/**
 	 * The default nickname for the bot
