@@ -49,7 +49,8 @@ public class Bot {
 	}
 
 	public static void main(String[] args) throws LoginException, RateLimitedException{
-		String token, adminUserID, homeGuildID, homeGuildTargetChannel;
+		Config botConfig;
+		String adminUserID, homeGuildID, homeGuildTargetChannel;
 		String[] homeGuildIgnoredChannels;
 		Map<String, String> mergeUsers = new HashMap<>();
 
@@ -58,7 +59,7 @@ public class Bot {
 			//Check the file formatting
 			checkConfigFormat(new File(configFile));
 
-			token = config.nextLine().substring(7);						//Read in bot token
+			botConfig = new Config(config.nextLine().substring(7));						//Read in bot token
 			adminUserID = config.nextLine().substring(7);				//Read in admin user ID
 			homeGuildID = config.nextLine().substring(12);				//Read in home guild
 			homeGuildTargetChannel = config.nextLine().substring(14);	//Read in bot channel
@@ -85,7 +86,7 @@ public class Bot {
 			//TODO input validation
 
 			System.out.print("Bot Token: ");
-			token = console.nextLine();
+			botConfig = new Config(console.nextLine());
 
 			System.out.print("Admin User ID: ");
 			adminUserID = console.nextLine();
@@ -118,7 +119,7 @@ public class Bot {
 
 			//Save the collected input to a new config file
 			try (FileWriter config = new FileWriter(new File(configFile))) {
-				config.write("Token: "+ token +"\r\n");							//Bot token
+				config.write("Token: "+ botConfig.getToken() +"\r\n");							//Bot token
 				config.write("Admin: "+ adminUserID +"\r\n");					//Admin user ID
 				config.write("Home Guild: "+ homeGuildID +"\r\n");				//Home guild
 				config.write("Home Channel: "+ homeGuildTargetChannel +"\r\n");	//Bot channel
@@ -135,7 +136,7 @@ public class Bot {
 		//TODO add ignored channels to botListener
 		//TODO add users to merge to botListener
 
-		JDA api = new JDABuilder(AccountType.BOT).setToken(token).buildAsync();
+		JDA api = new JDABuilder(AccountType.BOT).setToken(botConfig.getToken()).buildAsync();
 		api.addEventListener(botListener);
 	}
 
