@@ -58,10 +58,12 @@ public class Bot {
 			//Check the file formatting
 			checkConfigFormat(new File(configFile));
 
-			botConfig = new Config(config.nextLine().substring(7));						//Read in bot token
-			botConfig.setAdminID(config.nextLine().substring(7));				//Read in admin user ID
-			botConfig.setHomeGuildID(config.nextLine().substring(12));				//Read in home guild
-			botConfig.setTargetChannel(config.nextLine().substring(14));	//Read in bot channel
+			botConfig = new Config(
+					config.nextLine().substring(7),		//Read in bot token
+					config.nextLine().substring(7),		//Read in admin user ID
+					config.nextLine().substring(12),	//Read in home guild
+					config.nextLine().substring(14)		//Read in bot channel
+			);
 
 			String line = config.nextLine();							//Read in ignored channels
 			if (!line.matches("^Ignored: ?$")) { //Only try reading in ignore channels if any are specified
@@ -149,6 +151,13 @@ public class Bot {
 			if (token == null || token.isEmpty()) throw new IllegalArgumentException("Invalid bot token (null or empty)");
 			//TODO formatting checks for token
 			this.token = token;
+		}
+
+		public Config(String token, String adminUserID, String homeGuildID, String targetChannelID) {
+			this(token);
+			setAdminID(adminUserID);
+			setHomeGuildID(homeGuildID);
+			setTargetChannel(targetChannelID);
 		}
 
 		public String getToken() { return token; }
