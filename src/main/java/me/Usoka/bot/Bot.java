@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Bot {
-	private static final String configFile = "src\\main\\resources\\bot.config";
+	private static final String configFile = "src/main/resources/bot.config";
 
 	/**
 	 * Get the pair of user IDs as Strings from a single string containing both
@@ -48,9 +48,9 @@ public class Bot {
 		}
 	}
 
-	public static void main(String[] args) throws LoginException, RateLimitedException{
+	public static void main(String[] args) throws LoginException, RateLimitedException {
 		Config botConfig;
-		String[] homeGuildIgnoredChannels;
+		String[] ignoredChannels;
 		Map<String, String> mergeUsers = new HashMap<>();
 
 		//Try reading in from an existing config file
@@ -65,9 +65,9 @@ public class Bot {
 					config.nextLine().substring(14)		//Read in bot channel
 			);
 
-			String line = config.nextLine();							//Read in ignored channels
-			if (!line.matches("^Ignored: ?$")) { //Only try reading in ignore channels if any are specified
-				homeGuildIgnoredChannels = line.substring(9).split(",(\\s+)?");
+			String line = config.nextLine();			//Read in ignored channels
+			if (!line.matches("^Ignored: ?$")) {	//Only try reading in ignore channels if any are specified
+				ignoredChannels = line.substring(9).split(",(\\s+)?");
 			}
 
 			//Read in pairs of users to merge for markov
@@ -100,8 +100,8 @@ public class Bot {
 
 			//Channels that should be ignored
 			System.out.print("Ignored Channels (separated by ,): ");
-			String ignoredChannels = console.nextLine();
-			homeGuildIgnoredChannels = ignoredChannels.split(",(\\s+)?");
+			String ignoredChannelsList = console.nextLine();
+			ignoredChannels = ignoredChannelsList.split(",(\\s+)?");
 
 
 			//Get which user accounts' should have their markov data merged
@@ -120,12 +120,12 @@ public class Bot {
 
 			//Save the collected input to a new config file
 			try (FileWriter config = new FileWriter(new File(configFile))) {
-				config.write("Token: "+ botConfig.getToken() +"\r\n");							//Bot token
-				config.write("Admin: "+ botConfig.getAdminID() +"\r\n");					//Admin user ID
-				config.write("Home Guild: "+ botConfig.getHomeGuildID() +"\r\n");				//Home guild
+				config.write("Token: "+ botConfig.getToken() +"\r\n");					//Bot token
+				config.write("Admin: "+ botConfig.getAdminID() +"\r\n");				//Admin user ID
+				config.write("Home Guild: "+ botConfig.getHomeGuildID() +"\r\n");		//Home guild
 				config.write("Home Channel: "+ botConfig.getTargetChannelID() +"\r\n");	//Bot channel
-				config.write("Ignored: "+ ignoredChannels +"\r\n");				//Ignored channels
-				config.write("Merge Users: "+ mergedUsers);						//Users to merge
+				config.write("Ignored: "+ ignoredChannelsList +"\r\n");					//Ignored channels
+				config.write("Merge Users: "+ mergedUsers);								//Users to merge
 
 			} catch (IOException fileSaveFail) {
 				System.err.println("Could not save config to file: "+ fileSaveFail);
@@ -134,8 +134,6 @@ public class Bot {
 
 		BotListener botListener = new BotListener(botConfig.getHomeGuildID(), botConfig.getTargetChannelID());
 		botListener.setAdmin(botConfig.getAdminID());
-		//TODO add ignored channels to botListener
-		//TODO add users to merge to botListener
 
 		JDA api = new JDABuilder(AccountType.BOT).setToken(botConfig.getToken()).buildAsync();
 		api.addEventListener(botListener);
@@ -146,6 +144,8 @@ public class Bot {
 		private String adminID;
 		private String homeID;
 		private String targetChannelID;
+		//TODO add ignored channels
+		//TODO add users to merge
 
 		public Config(String token) {
 			if (token == null || token.isEmpty()) throw new IllegalArgumentException("Invalid bot token (null or empty)");
