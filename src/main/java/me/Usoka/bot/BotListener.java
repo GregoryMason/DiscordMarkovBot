@@ -59,12 +59,6 @@ public class BotListener extends ListenerAdapter {
 	 */
 	private static final int NICKNAME_MAX_LENGTH = 32;
 
-	private String adminUserID;
-
-	//Guild/channel ids which the bot works in
-	private final String homeGuildID;
-	private final String botChannelID;
-
 	/**
 	 * Used to identify if the bot is fully running.
 	 * <code>false</code> when bot is starting up
@@ -81,6 +75,7 @@ public class BotListener extends ListenerAdapter {
 	 */
 	private static final int BATCH_SIZE = 200;
 
+	private final Bot.Config botConfig;
 	private Core markovCore;
 
 	/**
@@ -91,22 +86,10 @@ public class BotListener extends ListenerAdapter {
 		if (botConfig.getHomeGuildID() == null || botConfig.getTargetChannelID() == null)
 			throw new IllegalArgumentException("Config does not have valid home guild or target channel");
 
-		this.homeGuildID = botConfig.getHomeGuildID();
-		this.botChannelID = botConfig.getTargetChannelID();
+		this.botConfig = botConfig;
 		markovCore = new Core(
 				RESOURCES_PATH +"sourceData.db",
 				RESOURCES_PATH +"markovData.db");
-
-		if (botConfig.getAdminID() != null) setAdmin(botConfig.getAdminID());
-	}
-
-	/**
-	 * Set the userID related to the administrative account for this bot
-	 * @param userID ID as String for the admin user
-	 */
-	public void setAdmin(String userID) {
-		if (userID != null && !userID.matches("^[0-9]*$")) throw new IllegalArgumentException("Invalid userID format "+ userID);
-		this.adminUserID = userID;
 	}
 
 	/**
@@ -121,17 +104,17 @@ public class BotListener extends ListenerAdapter {
 	 * @param api api instance used to get the Guilds and Channels
 	 */
 	private void startBot(JDA api) {
-		Guild homeGuild = api.getGuildById(homeGuildID);
+		Guild homeGuild = api.getGuildById(botConfig.getHomeGuildID());
 		setBotNickname(homeGuild, DEFAULT_NICKNAME, "Auto set for bot start-up");
 
 		//Ensure the username and discriminator for all users are up to date
-		for (Member member : api.getGuildById(homeGuildID).getMembers()) {
+		for (Member member : api.getGuildById(botConfig.getHomeGuildID()).getMembers()) {
 			markovCore.ensureUser(convertUserClass(member.getUser()));
 		}
 
 		//Fetch all message history from between the last time bot was started and now
 		try {
-			getAllChannelHistory(homeGuild, api.getTextChannelById(botChannelID),
+			getAllChannelHistory(homeGuild, api.getTextChannelById(botConfig.getTargetChannelID()),
 					"Starting bot", Long.parseUnsignedLong(markovCore.getMostRecentID()));
 		} catch (IOException e) {
 			System.err.println("Could not retrieve message history: ");
@@ -164,12 +147,12 @@ public class BotListener extends ListenerAdapter {
 		//TODO Set up something better for handling commands
 
 
-		if (command.equals("gethistory") && event.getAuthor().getId().equals(adminUserID)) {
+		if (command.equals("gethistory") && event.getAuthor().getId().equals(botConfig.getAdminID())) {
 			getAllChannelHistory(event.getGuild(), event.getChannel(), "Rediscovering the past...", 0);
 		}
 
 		//Following commands can only be interpreted in the specified bot channel
-		if (!event.getChannel().getId().equals(botChannelID)) return;
+		if (!event.getChannel().getId().equals(botConfig.getTargetChannelID())) return;
 
 		if (command.equals("context") && !content.equals("")) {
 			try {
