@@ -84,17 +84,20 @@ public class BotListener extends ListenerAdapter {
 	private Core markovCore;
 
 	/**
-	 * @param homeGuildID The ID of the guild which the bot is based in
-	 * @param targetChannelID Channel which the bot uses for sending messages
+	 * @param botConfig Config object used to hold information for running bot
 	 */
-	public BotListener(String homeGuildID, String targetChannelID) {
-		if (homeGuildID == null || targetChannelID == null) throw new IllegalArgumentException();
+	public BotListener(Bot.Config botConfig) {
+		if (botConfig == null) throw new IllegalArgumentException("Must provide Config for bot");
+		if (botConfig.getHomeGuildID() == null || botConfig.getTargetChannelID() == null)
+			throw new IllegalArgumentException("Config does not have valid home guild or target channel");
 
-		this.homeGuildID = homeGuildID;
-		this.botChannelID = targetChannelID;
+		this.homeGuildID = botConfig.getHomeGuildID();
+		this.botChannelID = botConfig.getTargetChannelID();
 		markovCore = new Core(
 				RESOURCES_PATH +"sourceData.db",
 				RESOURCES_PATH +"markovData.db");
+
+		if (botConfig.getAdminID() != null) setAdmin(botConfig.getAdminID());
 	}
 
 	/**

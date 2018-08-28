@@ -132,8 +132,7 @@ public class Bot {
 			}
 		}
 
-		BotListener botListener = new BotListener(botConfig.getHomeGuildID(), botConfig.getTargetChannelID());
-		botListener.setAdmin(botConfig.getAdminID());
+		BotListener botListener = new BotListener(botConfig);
 
 		JDA api = new JDABuilder(AccountType.BOT).setToken(botConfig.getToken()).buildAsync();
 		api.addEventListener(botListener);
